@@ -1,0 +1,289 @@
+light:
+  - platform: litetouch
+    host: 10.3.1.35
+    port: 10001
+
+    # 4 concurrent command sockets (as requested)
+    command_connections: 4
+
+    # Keep notifications isolated on a separate socket (recommended)
+    event_connection: true
+
+    # default fade time (seconds) for DSMLV transitions
+    transition: 2
+
+    # Your lights
+    lights:
+
+    # First Floor
+      - name: Mail Hall
+        loadid: 82
+        module: "0011"
+        output: 1
+      - name: Front Hall Chandelier
+        loadid: 23
+        module: "0002"
+        output: 0
+      - name: Kitchen Downlights
+        loadid: 43
+        module: "0008"
+        output: 0
+      - name: Kitchen Chandelier
+        loadid: 44
+        module: "0011"
+        output: 0
+      - name: Kitchen Counters
+        loadid: 46
+        module: "0018"
+        output: 1
+      - name: Kitchen Cabinets
+        loadid: 45
+        module: "0019"
+        output: 7
+      - name: Kitchen Sink
+        loadid: 49
+        module: "0002"
+        output: 2
+      - name: Front Door
+        loadid: 20
+        module: "0003"
+        output: 5
+      - name: Master Bedroom Fan Light
+        loadid: 4
+        module: "0003"
+        output: 1
+      - name: Master Bedroom Sconces
+        loadid: 6
+        module: "0006"
+        output: 4
+      - name: Master Bedroom Outlets
+        loadid: 5
+        module: "0016"
+        output: 1
+      - name: Master Bathroom Shower
+        loadid: 15
+        module: "0002"
+        output: 4
+      - name: Master Bathroom Tub
+        loadid: 13
+        module: "0002"
+        output: 3
+      - name: Master Bathroom Mirror
+        loadid: 14
+        module: "0008"
+        output: 3
+      - name: Master Closet
+        loadid: 16
+        module: "0004"
+        output: 2
+      - name: Track Lights
+        loadid: 2
+        module: "0006"
+        output: 1
+      - name: Alcove
+        loadid: 206
+        module: "0004"
+        output: 4
+      - name: Dining Room
+        loadid: 36
+        module: "0012"
+        output: 0
+      - name: Garage
+        loadid: 63
+        module: "0016"
+        output: 4
+      - name: Butler Pantry
+        loadid: 234
+        module: "0010"
+        output: 4
+      - name: Butler Cabinets
+        loadid: 235
+        module: "0017"
+        output: 3
+      - name: Laundry Room
+        loadid: 314
+        module: "0017"
+        output: 0
+      - name: Great Room Downlights
+        loadid: 90
+        module: "0011"
+        output: 3
+      - name: Great Room Cabinets
+        loadid: 53
+        module: "0007"
+        output: 4
+      - name: Great Room Outlets
+        loadid: 54
+        module: "0016"
+        output: 5
+      - name: Study Fan Light
+        loadid: 95
+        module: "0009"
+        output: 4
+      - name: Study Over Cabinet
+        loadid: 97
+        module: "0017"
+        output: 1
+      - name: Study Under Cabinet
+        loadid: 100
+        module: "0018"
+        output: 4
+      - name: Study Decor
+        loadid: 99
+        module: "0003"
+        output: 2
+      - name: Study Outlets
+        loadid: 101
+        module: "0014"
+        output: 3
+      - name: Nook Chandelier
+        loadid: 52
+        module: "0010"
+        output: 0
+
+
+    # Second Floor
+      - name: Rear Chandelier
+        loadid: 105
+        module: "0008"
+        output: 5
+
+      - name: Upstairs Hallway
+        loadid: 18
+        module: "0007"
+        output: 1
+
+      - name: MBR2 Downlights
+        loadid: 120
+        module: "0004"
+        output: 3
+
+      - name: MBR2 Fan Light
+        loadid: 319
+        module: "0008"
+        output: 7
+
+      - name: MBath2 Downlights
+        loadid: 131
+        module: "0015"
+        output: 0
+
+      - name: MBath2 Mirror
+        loadid: 129
+        module: "0008"
+        output: 1
+
+      - name: MBath2 Tub
+        loadid: 128
+        module: "0005"
+        output: 2
+
+      - name: MBath2 Shower
+        loadid: 130
+        module: "0002"
+        output: 5
+
+      - name: Aiden Fan
+        loadid: 109
+        module: "0015"
+        output: 2
+
+      - name: Aiden Dormer
+        loadid: 112
+        module: "0009"
+        output: 5
+
+      - name: Aiden Outlets
+        loadid: 110
+        module: "0014"
+        output: 2
+
+      - name: Guest Fan
+        loadid: 113
+        module: "0003"
+        output: 3
+
+      - name: Guest Outlets
+        loadid: 114
+        module: "0014"
+        output: 1
+
+      - name: Jewelry Room
+        loadid: 118
+        module: "0010"
+        output: 5
+
+
+
+    # Basement
+      - name: Patrick Downlights
+        loadid: 134
+        module: "0007"
+        output: 6
+
+      - name: Patrick Outlet
+        loadid: 135
+        module: "0013"
+        output: 2
+
+      - name: Patrick Closet
+        loadid: 187
+        module: "0019"
+        output: 6
+
+      - name: BB Downlights
+        loadid: 183
+        module: "0011"
+        output: 4
+
+      - name: BB Mirror
+        loadid: 186
+        module: "0001"
+        output: 6
+
+      - name: BB Exhaust
+        loadid: 249
+        module: "0013"
+        output: 7
+
+      - name: BB Toilet
+        loadid: 247
+        module: "0002"
+        output: 6
+
+      - name: BB Shower
+        loadid: 250
+        module: "0006"
+        output: 7
+
+      - name: Pool Table Chandelier
+        loadid: 269
+        module: "0001"
+        output: 0
+
+      - name: Pool Table Downlights
+        loadid: 267
+        module: "0004"
+        output: 0
+
+      - name: Rec Downlights
+        loadid: 265
+        module: "0009"
+        output: 7
+
+      - name: Server Room
+        loadid: 280
+        module: "0018"
+        output: 7
+
+      - name: Center Downlights
+        loadid: 266
+        module: "0005"
+        output: 0
+
+      - name: Gym
+        loadid: 167
+        module: "0022"
+        output: 3
+
+

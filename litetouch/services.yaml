@@ -1,0 +1,52 @@
+set_clock:
+  name: Set Clock
+  description: >
+    Set the LiteTouch system clock to the current Home Assistant time.
+
+  fields: {}
+
+set_module_levels:
+  name: Set Module Levels
+  description: >
+    Set output levels for a LiteTouch module.
+
+  fields:
+    module:
+      name: Module
+      description: Module hex address
+      example: "0007"
+
+    bitmap:
+      name: Bitmap
+      description: Output bitmap (hex)
+      example: "FF"
+
+    ramp:
+      name: Ramp Time
+      description: Ramp time in seconds
+      example: 1
+
+    levels:
+      name: Levels
+      description: List of output levels
+      example:
+        - 100
+        - 80
+        - 60
+        - 40
+        - 100
+        - 100
+        - 100
+        - 100
+        - 100
+
+toggle_switch:
+  name: Toggle Switch
+  description: >
+    Toggle a LiteTouch switch (equivalent to a physical button press).
+
+  fields:
+    switch:
+      name: Switch
+      description: Switch identifier expected by the LiteTouch bridge
+      example: "0118"

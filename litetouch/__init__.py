@@ -1,0 +1,1 @@
+# Intentionally minimal for YAML platform integration.
