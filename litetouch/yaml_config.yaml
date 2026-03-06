@@ -4,7 +4,7 @@ light:
     port: 10001
 
     # 4 concurrent command sockets (as requested)
-    command_connections: 4
+    command_connections: 7
 
     # Keep notifications isolated on a separate socket (recommended)
     event_connection: true
