@@ -174,7 +174,7 @@ class _LiteTouchTransport:
                     delay = self.reconnect_min_delay
 
                 assert self._reader is not None
-                # Messages are terminated by carriage return per spec 
+                # Messages are terminated by carriage return per spec
                 raw = await self._reader.readuntil(separator=b"\r")
                 line = raw.decode("ascii", errors="replace").strip("\r\n")
                 msg = _parse_line(line)
@@ -210,12 +210,16 @@ class _LiteTouchTransport:
                 await self._disconnect()
             except asyncio.LimitOverrunError:
                 # If controller sends malformed line without delimiter; try continue
-                _LOGGER.warning("[%s] read limit overrun; resetting connection", self.name)
+                _LOGGER.warning(
+                    "[%s] read limit overrun; resetting connection", self.name
+                )
                 await self._disconnect()
             except asyncio.CancelledError:
                 break
             except Exception:
-                _LOGGER.exception("[%s] unexpected error; resetting connection", self.name)
+                _LOGGER.exception(
+                    "[%s] unexpected error; resetting connection", self.name
+                )
                 await self._disconnect()
 
             if self.reconnect and not self._stop.is_set() and not self.is_connected:
@@ -233,7 +237,6 @@ class _LiteTouchTransport:
             if self.print_raw:
                 print(f"[{self.name}] >> {command.strip()}")
             self._writer.write(command.encode("ascii", errors="replace"))
-            _LOGGER.debug(f"{command}")
             await self._writer.drain()
 
     async def request(
@@ -245,7 +248,7 @@ class _LiteTouchTransport:
     ) -> LiteTouchResponse:
         """
         Send command then await a matching response.
-        Many commands in the doc have ACK or RQRES formats. 
+        Many commands in the doc have ACK or RQRES formats.
         """
         loop = asyncio.get_running_loop()
         fut: asyncio.Future = loop.create_future()
@@ -284,8 +287,8 @@ class LiteTouchClient:
     Async LiteTouch RTC Protocol client.
 
     Design notes:
-    - Commands are ASCII comma-delimited, terminated with '\\r'. 
-    - Controller can send unsolicited notifications (RLEDU, RMODU, REVNT). 
+    - Commands are ASCII comma-delimited, terminated with '\\r'.
+    - Controller can send unsolicited notifications (RLEDU, RMODU, REVNT).
     - To avoid interleaving command responses with notifications, you can use a
       separate 'event' connection and/or a pool of command connections.
     """
@@ -357,7 +360,7 @@ class LiteTouchClient:
         return self._event_transport or self._cmd_transports[0]
 
     def _handle_unsolicited(self, resp: LiteTouchResponse) -> None:
-        # Notifications documented: RLEDU, RMODU, REVNT 
+        # Notifications documented: RLEDU, RMODU, REVNT
         if resp.kind == "RLEDU":
             # fields: station, bitmap
             if len(resp.fields) >= 2:
@@ -422,56 +425,56 @@ class LiteTouchClient:
         return _m
 
     # ----------------------------
-    # Notify Setup Commands 
+    # Notify Setup Commands
     # ----------------------------
 
     async def set_internal_event_notify(self, level: int) -> None:
-        # R,SIEVN,[0..7]  (mutually exclusive levels) 
+        # R,SIEVN,[0..7]  (mutually exclusive levels)
         await self._events_transport().send(self._cmd("R", "SIEVN", level))
 
     async def set_station_notify(self, station: int, mode: int) -> None:
-        # R,SSTNN,<xxx>,[n] where n=0..3 
+        # R,SSTNN,<xxx>,[n] where n=0..3
         st = f"{station:03d}"
         await self._events_transport().send(self._cmd("R", "SSTNN", st, mode))
 
     async def set_module_notify(self, module_hex: str, mode: int) -> None:
-        # R,SMODN,<xxx>,[n] where xxx module address in hex, n=0..1 
+        # R,SMODN,<xxx>,[n] where xxx module address in hex, n=0..1
         await self._events_transport().send(self._cmd("R", "SMODN", module_hex, mode))
 
     # ----------------------------
-    # Diagnostic Commands 
+    # Diagnostic Commands
     # ----------------------------
 
     async def full_station_test(self, timeout: float = 5.0) -> LiteTouchResponse:
-        # R,DFSTS -> multiple R,RTRES,... responses 
+        # R,DFSTS -> multiple R,RTRES,... responses
         t = self._pick_cmd_transport()
         return await t.request(
             self._cmd("R", "DFSTS"), expect=self._expect_rtres(), timeout=timeout
         )
 
     async def station_test(self, timeout: float = 5.0) -> LiteTouchResponse:
-        # R,DSTST -> R,RTRES,... 
+        # R,DSTST -> R,RTRES,...
         t = self._pick_cmd_transport()
         return await t.request(
             self._cmd("R", "DSTST"), expect=self._expect_rtres(), timeout=timeout
         )
 
     async def full_module_test(self, timeout: float = 5.0) -> LiteTouchResponse:
-        # R,DFMTS -> R,RTRES,... 
+        # R,DFMTS -> R,RTRES,...
         t = self._pick_cmd_transport()
         return await t.request(
             self._cmd("R", "DFMTS"), expect=self._expect_rtres(), timeout=timeout
         )
 
     async def module_test(self, timeout: float = 5.0) -> LiteTouchResponse:
-        # R,DMTST -> R,RTRES,... 
+        # R,DMTST -> R,RTRES,...
         t = self._pick_cmd_transport()
         return await t.request(
             self._cmd("R", "DMTST"), expect=self._expect_rtres(), timeout=timeout
         )
 
     async def get_clock(self) -> str:
-        # R,DGCLK -> R,RQRES,DGCLK,yyyymmddhhmmss 
+        # R,DGCLK -> R,RQRES,DGCLK,yyyymmddhhmmss
         t = self._pick_cmd_transport()
         resp = await t.request(
             self._cmd("R", "DGCLK"), expect=self._expect_query("DGCLK"), timeout=3.0
@@ -479,11 +482,11 @@ class LiteTouchClient:
         return resp.fields[0] if resp.fields else ""
 
     async def set_clock(self, yyyymmddhhmmss: str) -> None:
-        # R,DSCLK,yyyymmddhhmmss -> none 
+        # R,DSCLK,yyyymmddhhmmss -> none
         await self._pick_cmd_transport().send(self._cmd("R", "DSCLK", yyyymmddhhmmss))
 
     async def get_sunrise(self) -> LiteTouchResponse:
-        # R,CGTSR -> doc shows RCACK text response 
+        # R,CGTSR -> doc shows RCACK text response
         t = self._pick_cmd_transport()
         return await t.request(
             self._cmd("R", "CGTSR"),
@@ -492,14 +495,14 @@ class LiteTouchClient:
         )
 
     async def get_sunset(self) -> LiteTouchResponse:
-        # R,CGTSS -> R,RQRES,CGTSS,... 
+        # R,CGTSS -> R,RQRES,CGTSS,...
         t = self._pick_cmd_transport()
         return await t.request(
             self._cmd("R", "CGTSS"), expect=self._expect_query("CGTSS"), timeout=3.0
         )
 
     async def get_module_levels(self, module_hex: str) -> Tuple[str, List[int]]:
-        # R,DGMLV,<mmm> -> R,RQRES,DGMLV,<map>,<level1>.. [1](https://fresenius-my.sharepoint.com/personal/patrick_carr_fresenius-kabi_com/Documents/Microsoft%20Copilot%20Chat%20Files/5000,%205K%20-%20LiteTouch%20Integration%20Protocols.pdf)
+        # R,DGMLV,<mmm> -> R,RQRES,DGMLV,<map>,<level1>..
         t = self._pick_cmd_transport()
         resp = await t.request(
             self._cmd("R", "DGMLV", module_hex),
@@ -522,21 +525,21 @@ class LiteTouchClient:
         time_seconds: int,
         levels: List[int],
     ) -> None:
-        # R,DSMLV,<mmm>,<map>,<time>,<level1>..<leveln> -> R,RDACK,DSMLV 
+        # R,DSMLV,<mmm>,<map>,<time>,<level1>..<leveln> -> R,RDACK,DSMLV
         t = self._pick_cmd_transport()
         cmd = self._cmd("R", "DSMLV", module_hex, bitmap_hex, time_seconds, *levels)
         await t.request(cmd, expect=self._expect_ack("RDACK", "DSMLV"), timeout=3.0)
 
     async def memory_monitor_test(self, device: int, on_off: int) -> None:
-        # R,DMMTS,[1|2|3],[0|1] -> none 
+        # R,DMMTS,[1|2|3],[0|1] -> none
         await self._pick_cmd_transport().send(self._cmd("R", "DMMTS", device, on_off))
 
     # ----------------------------
-    # Function Commands 
+    # Function Commands
     # ----------------------------
 
     async def get_load_state(self, mmmo: str) -> int:
-        # R,CGLST,<mmmo> -> R,RQRES,CGLST,<b> 
+        # R,CGLST,<mmmo> -> R,RQRES,CGLST,<b>
         t = self._pick_cmd_transport()
         resp = await t.request(
             self._cmd("R", "CGLST", mmmo),
@@ -546,7 +549,7 @@ class LiteTouchClient:
         return int(resp.fields[0]) if resp.fields else 0
 
     async def get_load_level(self, mmmo: str) -> int:
-        # R,CGLLV,<mmmo> -> R,RQRES,CGLLV,<level> 
+        # R,CGLLV,<mmmo> -> R,RQRES,CGLLV,<level>
         t = self._pick_cmd_transport()
         resp = await t.request(
             self._cmd("R", "CGLLV", mmmo),
@@ -556,7 +559,7 @@ class LiteTouchClient:
         return int(resp.fields[0]) if resp.fields else 0
 
     async def set_loads_on(self, load_group: int) -> None:
-        # R,CSLON,<group> -> R,RCACK,CSLON 
+        # R,CSLON,<group> -> R,RCACK,CSLON
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CSLON", load_group),
@@ -565,7 +568,7 @@ class LiteTouchClient:
         )
 
     async def set_loads_off(self, load_group: int) -> None:
-        # R,CSLOF,<group> -> R,RCACK,CSLOF 
+        # R,CSLOF,<group> -> R,RCACK,CSLOF
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CSLOF", load_group),
@@ -574,7 +577,7 @@ class LiteTouchClient:
         )
 
     async def set_load_levels(self, load_group: int) -> None:
-        # R,CSLLV,<group> -> R,RCACK,CSLLV 
+        # R,CSLLV,<group> -> R,RCACK,CSLLV
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CSLLV", load_group),
@@ -583,7 +586,7 @@ class LiteTouchClient:
         )
 
     async def set_previous_load_states(self, load_group: int) -> None:
-        # R,CSPLS,<group> -> R,RCACK,CSPLS 
+        # R,CSPLS,<group> -> R,RCACK,CSPLS
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CSPLS", load_group),
@@ -592,7 +595,7 @@ class LiteTouchClient:
         )
 
     async def copy_current_to_preset_levels(self, load_group: int) -> None:
-        # R,CGCLV,<group> -> R,RCACK,CGCLV 
+        # R,CGCLV,<group> -> R,RCACK,CGCLV
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CGCLV", load_group),
@@ -601,7 +604,7 @@ class LiteTouchClient:
         )
 
     async def copy_current_to_min_levels(self, load_group: int) -> None:
-        # R,CGMIN,<group> -> R,RCACK,CGMIN 
+        # R,CGMIN,<group> -> R,RCACK,CGMIN
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CGMIN", load_group),
@@ -610,7 +613,7 @@ class LiteTouchClient:
         )
 
     async def copy_current_to_max_levels(self, load_group: int) -> None:
-        # R,CGMAX,<group> -> R,RCACK,CGMAX 
+        # R,CGMAX,<group> -> R,RCACK,CGMAX
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CGMAX", load_group),
@@ -619,7 +622,7 @@ class LiteTouchClient:
         )
 
     async def get_load_value(self, mmmo: str, load_group: int) -> int:
-        # R,CGLVA,<mmmo>,<group> -> R,RQRES,CGLVA,<level> 
+        # R,CGLVA,<mmmo>,<group> -> R,RQRES,CGLVA,<level>
         t = self._pick_cmd_transport()
         resp = await t.request(
             self._cmd("R", "CGLVA", mmmo, load_group),
@@ -629,7 +632,7 @@ class LiteTouchClient:
         return int(resp.fields[0]) if resp.fields else 0
 
     async def set_preset_value(self, mmmo: str, load_group: int, value: int) -> None:
-        # R,CSLVA,<mmmo>,<group>,<value> -> R,RCACK,CSLVA 
+        # R,CSLVA,<mmmo>,<group>,<value> -> R,RCACK,CSLVA
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CSLVA", mmmo, load_group, value),
@@ -638,7 +641,7 @@ class LiteTouchClient:
         )
 
     async def get_led_state(self, ssso: str) -> int:
-        # R,CGLED,<ssso> -> R,RQRES,CGLED,<bool> 
+        # R,CGLED,<ssso> -> R,RQRES,CGLED,<bool>
         t = self._pick_cmd_transport()
         resp = await t.request(
             self._cmd("R", "CGLED", ssso),
@@ -648,7 +651,7 @@ class LiteTouchClient:
         return int(resp.fields[0]) if resp.fields else 0
 
     async def get_led_states(self, sss: str) -> int:
-        # R,CGLES,<sss> -> R,RQRES,CGLES,<xx> 
+        # R,CGLES,<sss> -> R,RQRES,CGLES,<xx>
         t = self._pick_cmd_transport()
         resp = await t.request(
             self._cmd("R", "CGLES", sss),
@@ -658,7 +661,7 @@ class LiteTouchClient:
         return int(resp.fields[0]) if resp.fields else 0
 
     async def get_valid_switches(self, sss: str) -> Tuple[str, int]:
-        # R,CGVSW,<sss> -> R,RQRES,CGVSW,<ssss>,<xx> 
+        # R,CGVSW,<sss> -> R,RQRES,CGVSW,<ssss>,<xx>
         t = self._pick_cmd_transport()
         resp = await t.request(
             self._cmd("R", "CGVSW", sss),
@@ -670,7 +673,7 @@ class LiteTouchClient:
         return station_hex, bitmap_dec
 
     async def set_led_on(self, ssso: str) -> None:
-        # R,CLDON,<ssso> -> R,RCACK,CLDON 
+        # R,CLDON,<ssso> -> R,RCACK,CLDON
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CLDON", ssso),
@@ -679,7 +682,7 @@ class LiteTouchClient:
         )
 
     async def set_led_off(self, ssso: str) -> None:
-        # R,CLDOF,<ssso> -> R,RCACK,CLDOF 
+        # R,CLDOF,<ssso> -> R,RCACK,CLDOF
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CLDOF", ssso),
@@ -688,7 +691,7 @@ class LiteTouchClient:
         )
 
     async def open_loads(self, load_group: int) -> None:
-        # R,COPNL,<group> -> R,RCACK,COPNL 
+        # R,COPNL,<group> -> R,RCACK,COPNL
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "COPNL", load_group),
@@ -697,7 +700,7 @@ class LiteTouchClient:
         )
 
     async def close_loads(self, load_group: int) -> None:
-        # R,CCLSL,<group> -> R,RCACK,CCLSL 
+        # R,CCLSL,<group> -> R,RCACK,CCLSL
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CCLSL", load_group),
@@ -706,7 +709,7 @@ class LiteTouchClient:
         )
 
     async def stop_loads(self, load_group: int) -> None:
-        # R,CSTPL,<group> -> R,RCACK,CSTPL 
+        # R,CSTPL,<group> -> R,RCACK,CSTPL
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CSTPL", load_group),
@@ -715,7 +718,7 @@ class LiteTouchClient:
         )
 
     async def press_switch(self, ssso: str) -> None:
-        # R,CPRSW,<ssso> -> R,RCACK,CPRSW 
+        # R,CPRSW,<ssso> -> R,RCACK,CPRSW
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CPRSW", ssso),
@@ -724,7 +727,7 @@ class LiteTouchClient:
         )
 
     async def hold_switch(self, ssso: str) -> None:
-        # R,CHDSW,<ssso> -> R,RCACK,CHDSW 
+        # R,CHDSW,<ssso> -> R,RCACK,CHDSW
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CHDSW", ssso),
@@ -733,7 +736,7 @@ class LiteTouchClient:
         )
 
     async def release_switch(self, ssso: str) -> None:
-        # R,CRLSW,<ssso> -> R,RCACK,CRLSW 
+        # R,CRLSW,<ssso> -> R,RCACK,CRLSW
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CRLSW", ssso),
@@ -742,7 +745,7 @@ class LiteTouchClient:
         )
 
     async def toggle_switch(self, ssso: str) -> None:
-        # R,CTGSW,<ssso> -> R,RCACK,CTGSW 
+        # R,CTGSW,<ssso> -> R,RCACK,CTGSW
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CTGSW", ssso),
@@ -751,7 +754,7 @@ class LiteTouchClient:
         )
 
     async def press_hold_switch(self, ssso: str) -> None:
-        # R,CPHSW,<ssso> -> R,RCACK,CPHSW 
+        # R,CPHSW,<ssso> -> R,RCACK,CPHSW
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CPHSW", ssso),
@@ -760,7 +763,7 @@ class LiteTouchClient:
         )
 
     async def toggle_loads_on(self, load_group: int) -> None:
-        # R,CTLON,<group> -> R,RCACK,CTLON 
+        # R,CTLON,<group> -> R,RCACK,CTLON
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CTLON", load_group),
@@ -769,7 +772,7 @@ class LiteTouchClient:
         )
 
     async def toggle_loads_off(self, load_group: int) -> None:
-        # R,CTLOF,<group> -> R,RCACK,CTLOF 
+        # R,CTLOF,<group> -> R,RCACK,CTLOF
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CTLOF", load_group),
@@ -778,7 +781,7 @@ class LiteTouchClient:
         )
 
     async def start_ramp(self, load_group: int) -> None:
-        # R,CSTRP,<group> -> R,RCACK,CSTRP 
+        # R,CSTRP,<group> -> R,RCACK,CSTRP
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CSTRP", load_group),
@@ -787,7 +790,7 @@ class LiteTouchClient:
         )
 
     async def stop_ramp(self, load_group: int) -> None:
-        # R,CSPRP,<group> -> R,RCACK,CSPRP 
+        # R,CSPRP,<group> -> R,RCACK,CSPRP
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CSPRP", load_group),
@@ -796,7 +799,7 @@ class LiteTouchClient:
         )
 
     async def start_ramp_to_min(self, load_group: int) -> None:
-        # R,CSRMN,<group> -> R,RCACK,CSRMN 
+        # R,CSRMN,<group> -> R,RCACK,CSRMN
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CSRMN", load_group),
@@ -805,7 +808,7 @@ class LiteTouchClient:
         )
 
     async def start_ramp_to_max(self, load_group: int) -> None:
-        # R,CSRMX,<group> -> R,RCACK,CSRMX 
+        # R,CSRMX,<group> -> R,RCACK,CSRMX
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CSRMX", load_group),
@@ -814,7 +817,7 @@ class LiteTouchClient:
         )
 
     async def lock_loads(self, load_group: int) -> None:
-        # R,CLCKL,<group> -> R,RCACK,CLCKL 
+        # R,CLCKL,<group> -> R,RCACK,CLCKL
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CLCKL", load_group),
@@ -823,7 +826,7 @@ class LiteTouchClient:
         )
 
     async def unlock_loads(self, load_group: int) -> None:
-        # R,CUNLL,<group> -> R,RCACK,CUNLL 
+        # R,CUNLL,<group> -> R,RCACK,CUNLL
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CUNLL", load_group),
@@ -832,7 +835,7 @@ class LiteTouchClient:
         )
 
     async def lock_switch(self, ssso: str) -> None:
-        # R,CLCKS,<ssso> -> R,RCACK,CLCKS 
+        # R,CLCKS,<ssso> -> R,RCACK,CLCKS
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CLCKS", ssso),
@@ -841,7 +844,7 @@ class LiteTouchClient:
         )
 
     async def unlock_switch(self, ssso: str) -> None:
-        # R,CUNLS,<ssso> -> R,RCACK,CUNLS 
+        # R,CUNLS,<ssso> -> R,RCACK,CUNLS
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CUNLS", ssso),
@@ -850,7 +853,7 @@ class LiteTouchClient:
         )
 
     async def lock_timer(self, timer_id: int) -> None:
-        # R,CLCKT,<val> -> R,RCACK,CLCKT 
+        # R,CLCKT,<val> -> R,RCACK,CLCKT
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CLCKT", timer_id),
@@ -859,7 +862,7 @@ class LiteTouchClient:
         )
 
     async def unlock_timer(self, timer_id: int) -> None:
-        # R,CUNLT,<val> -> R,RCACK,CUNLT 
+        # R,CUNLT,<val> -> R,RCACK,CUNLT
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CUNLT", timer_id),
@@ -868,7 +871,7 @@ class LiteTouchClient:
         )
 
     async def set_global(self, address: int, value: int) -> None:
-        # R,CSETG,address,value -> R,RCACK,CSETG 
+        # R,CSETG,address,value -> R,RCACK,CSETG
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CSETG", address, value),
@@ -877,7 +880,7 @@ class LiteTouchClient:
         )
 
     async def get_global(self, address: int) -> int:
-        # R,CGETG,address -> R,RQRES,CGETG,<value> 
+        # R,CGETG,address -> R,RQRES,CGETG,<value>
         t = self._pick_cmd_transport()
         resp = await t.request(
             self._cmd("R", "CGETG", address),
@@ -887,7 +890,7 @@ class LiteTouchClient:
         return int(resp.fields[0]) if resp.fields else 0
 
     async def increment_load_levels(self, load_group_id: int, value: int) -> None:
-        # R,CUPLL,<loadgroupid>,<value> -> R,RCACK,CUPLL 
+        # R,CUPLL,<loadgroupid>,<value> -> R,RCACK,CUPLL
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CUPLL", load_group_id, value),
@@ -896,7 +899,7 @@ class LiteTouchClient:
         )
 
     async def decrement_load_levels(self, load_group_id: int, value: int) -> None:
-        # R,CDNLL,<loadgroupid>,<value> -> R,RCACK,CDNLL 
+        # R,CDNLL,<loadgroupid>,<value> -> R,RCACK,CDNLL
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CDNLL", load_group_id, value),
@@ -905,12 +908,10 @@ class LiteTouchClient:
         )
 
     async def initialize_load_levels(self, load_group_id: int, value: int) -> None:
-        # R,CINLL,<loadgroupid>,<value> -> R,RCACK,CINLL 
+        # R,CINLL,<loadgroupid>,<value> -> R,RCACK,CINLL
         t = self._pick_cmd_transport()
         await t.request(
             self._cmd("R", "CINLL", load_group_id, value),
             expect=self._expect_ack("RCACK", "CINLL"),
             timeout=3.0,
         )
-
-
