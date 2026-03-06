@@ -5,8 +5,10 @@ import voluptuous as vol
 
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
+    ATTR_TRANSITION,
     ColorMode,
     LightEntity,
+    LightEntityFeature,
     PLATFORM_SCHEMA,
 )
 from homeassistant.const import CONF_HOST, CONF_PORT
@@ -153,6 +155,12 @@ class LiteTouchLightEntity(LightEntity):
         return self._brightness
 
     @property
+    def supported_features(self) -> LightEntityFeature:
+        """Flag supported features."""
+
+        return LightEntityFeature.TRANSITION
+
+    @property
     def should_poll(self) -> bool:
         # We are push-driven (RMODU). [1](https://developers.home-assistant.io/docs/creating_integration_manifest/)
         return False
@@ -194,13 +202,18 @@ class LiteTouchLightEntity(LightEntity):
         # HA brightness is 0..255; map to LiteTouch 0..100
         brightness = kwargs.get(ATTR_BRIGHTNESS, 255)
         level_pct = ha_to_pct(int(brightness))
+        if ATTR_TRANSITION in kwargs:
+            transition = kwargs[ATTR_TRANSITION]  # * 1000
+            _LOGGER.debug(f"Transition passed: {transition}")
+        else:
+            transition = self._default_transition
 
         await self._bridge.set_output_level(
             self._module_hex,
             self._output,
             level_pct,
             self._loadid,
-            transition=self._default_transition,
+            transition=transition,
         )
 
         # optimistic update
@@ -209,22 +222,26 @@ class LiteTouchLightEntity(LightEntity):
         self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs) -> None:
+        if ATTR_TRANSITION in kwargs:
+            transition = kwargs[ATTR_TRANSITION]  # * 1000
+        else:
+            transition = self._default_transition
 
-        await self._bridge.set_load_off(
-            self._module_hex,
-            self._output,
-            0,
-            self._loadid,
-            transition=self._default_transition,
-        )
-
-        # await self._bridge.set_output_level(
+        # await self._bridge.set_load_off(
         #     self._module_hex,
         #     self._output,
         #     0,
         #     self._loadid,
-        #     transition=self._default_transition,
+        #     transition=transition,
         # )
+
+        await self._bridge.set_output_level(
+            self._module_hex,
+            self._output,
+            0,
+            self._loadid,
+            transition=transition,
+        )
 
         self._is_on = False
         self._brightness = 0
