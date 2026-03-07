@@ -107,6 +107,9 @@ class _LiteTouchTransport:
         on_message: Optional[Callable[[LiteTouchResponse], None]] = None,
         print_raw: bool = False,
         send_lock: Optional[asyncio.Lock] = None,
+        keepalive_interval: float = 60.0,     # NEW
+        keepalive_command: str = "R,SIEVN,7",   # NEW (no trailing \r needed)
+
     ):
         self.name = name
         self.host = host
@@ -116,6 +119,12 @@ class _LiteTouchTransport:
         self.reconnect_max_delay = reconnect_max_delay
         self.on_message = on_message
         self.print_raw = print_raw
+
+
+        self.keepalive_interval = keepalive_interval
+        self.keepalive_command = keepalive_command
+        self._keepalive_task: Optional[asyncio.Task] = None  # NEW
+
 
         self._send_lock = send_lock or asyncio.Lock()
         self._reader: Optional[asyncio.StreamReader] = None
@@ -134,16 +143,29 @@ class _LiteTouchTransport:
         return self._writer is not None and not self._writer.is_closing()
 
     async def start(self) -> None:
+        
         self._stop.clear()
         self._reader_task = asyncio.create_task(self._run(), name=f"{self.name}-reader")
+        if self.keepalive_interval and self.keepalive_interval > 0:
+            self._keepalive_task = asyncio.create_task(
+                self._keepalive_loop(), name=f"{self.name}-keepalive"
+        )
+
+
 
     async def close(self) -> None:
         self._stop.set()
+        if self._keepalive_task:
+            self._keepalive_task.cancel()
+            with contextlib.suppress(Exception):
+                await self._keepalive_task
+
         if self._reader_task:
             self._reader_task.cancel()
             with contextlib.suppress(Exception):
                 await self._reader_task
         await self._disconnect()
+
 
         # Cancel any pending waiters
         for _, fut in self._waiters:
@@ -164,6 +186,31 @@ class _LiteTouchTransport:
     async def _connect(self) -> None:
         self._reader, self._writer = await asyncio.open_connection(self.host, self.port)
         _LOGGER.info("[%s] connected to %s:%s", self.name, self.host, self.port)
+
+    async def _keepalive_loop(self) -> None:
+        """
+        Periodically send a lightweight command to keep NAT/controller from
+        closing an idle TCP session.
+        """
+        # small offset so we don't hammer immediately at startup
+        await asyncio.sleep(1.0)
+
+        while not self._stop.is_set():
+            try:
+                # Only send keepalive if connected; if not, let _run() reconnect.
+                if self.is_connected:
+                    # Use send() so we don't create a waiter/future
+                    await self.send(self.keepalive_command)
+                    _LOGGER.debug("Keep Litetouch Controller Alive")
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                _LOGGER.debug("[%s] keepalive send failed: %s", self.name, e)
+                # force a disconnect; _run() will reconnect with backoff
+                with contextlib.suppress(Exception):
+                    await self._disconnect()
+            finally:
+                await asyncio.sleep(self.keepalive_interval)
 
     async def _run(self) -> None:
         delay = self.reconnect_min_delay
