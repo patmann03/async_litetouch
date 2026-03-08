@@ -93,7 +93,7 @@ def async_setup_services(hass: HomeAssistant, bridge) -> None:
         now = dt.now(dt.DEFAULT_TIME_ZONE)
         clock = now.strftime("%Y%m%d%H%M%S")
 
-        await _async_call_client(hass, bridge._client.set_clock, clock)
+        await bridge.set_clock(clock)
 
         # Optional: expose last-set time in state machine for debugging
         hass.states.set(f"{DOMAIN}.last_clock_set", now.isoformat())

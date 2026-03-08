@@ -9,6 +9,8 @@ from .litetouch_rtc import LiteTouchClient  # <-- your earlier class
 _LOGGER = logging.getLogger(__name__)
 
 
+
+# Helper functions
 def pct_to_ha(level_0_100: int) -> int:
     """Convert LiteTouch 0..100 to HA 1..255."""
     if level_0_100 <= 0:
@@ -151,6 +153,7 @@ class LiteTouchBridge:
         self,
         keypad: str,
     ) -> None:
+        """Toggle litetouch button (like pressing the button)"""
         await self._client.toggle_switch(keypad)
 
     async def set_load_off(
@@ -158,8 +161,8 @@ class LiteTouchBridge:
         loadid: int,
 
     ) -> None:
-
-        # Send DSMLV with all 8 levels so we don't accidentally change others
+        """Set load off - loadid of grouped loads"""
+        # Set load off
         await self._client.set_loads_off(loadid)
 
     async def set_load_on(
@@ -167,18 +170,29 @@ class LiteTouchBridge:
         loadid: int,
 
     ) -> None:
-
-        # Send DSMLV with all 8 levels so we don't accidentally change others
+        """Set load on - loadid of grouped loads"""
+        # Set load on
         await self._client.set_loads_on(loadid)
+
+    async def set_clock(
+        self,
+        clock,
+
+        ) -> None:
+        """Set controller clock to prevent drift"""
+        # Set time on controller to prevent drift.
+        await self._client.set_clock(clock)
+
 
     async def initialize_load_levels(
         self,
-        level_pct: int,
         loadid: int,
+        level_pct: int,
+        
 
     ) -> None:
-
-        # Send DSMLV with all 8 levels so we don't accidentally change others
+        """Set the load level of the loadid brightness: 0...100"""
+        
         await self._client.initialize_load_levels(loadid, level_pct)
 
     # ---- push handler ----
