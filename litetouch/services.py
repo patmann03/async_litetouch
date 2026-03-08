@@ -112,9 +112,8 @@ def async_setup_services(hass: HomeAssistant, bridge) -> None:
         time_seconds = call.data[RAMP]
         levels = call.data[LEVELS]
 
-        await _async_call_client(
-            hass,
-            bridge._client.set_module_levels,
+        await bridge.set_output_level(
+            
             module_hex,
             bitmap_hex,
             time_seconds,
