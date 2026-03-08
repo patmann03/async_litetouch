@@ -259,9 +259,9 @@ class LiteTouchBridge:
         )
 
         # optimistic update (controller should also push RMODU)
-        self._module_levels[module_int] = new_levels
-        for cb in list(self._listeners):
-            cb(module_int)
+        # self._module_levels[module_int] = new_levels
+        # for cb in list(self._listeners):
+        #     cb(module_int)
 
     # ---- push handler ----
 

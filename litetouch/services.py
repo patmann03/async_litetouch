@@ -96,7 +96,7 @@ def async_setup_services(hass: HomeAssistant, bridge) -> None:
         await bridge.set_clock(clock)
 
         # Optional: expose last-set time in state machine for debugging
-        hass.states.set(f"{DOMAIN}.last_clock_set", now.isoformat())
+        hass.states.async_set(f"{DOMAIN}.last_clock_set", now.isoformat())
 
     hass.services.async_register(
         DOMAIN,

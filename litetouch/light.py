@@ -232,9 +232,9 @@ class LiteTouchLightEntity(LightEntity):
         )
 
         # optimistic update
-        self._is_on = level_pct > 0
-        self._brightness = pct_to_ha(level_pct)
-        self.async_write_ha_state()
+        # self._is_on = level_pct > 0
+        # self._brightness = pct_to_ha(level_pct)
+        # self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs) -> None:
         if ATTR_TRANSITION in kwargs:
@@ -257,7 +257,7 @@ class LiteTouchLightEntity(LightEntity):
             # self._loadid,
             transition=transition,
         )
-
-        self._is_on = False
-        self._brightness = 0
-        self.async_write_ha_state()
+        # Oportunistic update
+        # self._is_on = False
+        # self._brightness = 0
+        # self.async_write_ha_state()
