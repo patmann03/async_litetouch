@@ -55,7 +55,7 @@ LOADID_SCHEMA = vol.Schema(
         vol.Required(MODULE): cv.string,
         vol.Required(BITMAP): cv.string,
         vol.Required(LOADID): vol.Coerce(int),
-        vol.OPTIONAL(LVL): vol.Coerce(int),
+        vol.Optional(LVL): vol.Coerce(int),
     }
 )
 
