@@ -1,10 +1,9 @@
-light:
   - platform: litetouch
     host: 10.3.1.35
     port: 10001
 
     # 4 concurrent command sockets (as requested)
-    command_connections: 7
+    command_connections: 8
 
     # Keep notifications isolated on a separate socket (recommended)
     event_connection: true
@@ -14,275 +13,1083 @@ light:
 
     # Your lights
     lights:
-      # First Floor
-      - name: Main Hall
-        loadid: 82
-        module: "0011"
-        output: 1
-      - name: Front Hall Chandelier
-        loadid: 23
-        module: "0002"
-        output: 0
-      - name: Kitchen Downlights
-        loadid: 43
-        module: "0008"
-        output: 0
-      - name: Kitchen Chandelier
-        loadid: 44
-        module: "0011"
-        output: 0
-      - name: Kitchen Counters
-        loadid: 46
-        module: "0018"
-        output: 1
-      - name: Kitchen Cabinets
-        loadid: 45
-        module: "0019"
-        output: 7
-      - name: Kitchen Sink
-        loadid: 49
-        module: "0002"
-        output: 2
-      - name: Front Door
-        loadid: 20
-        module: "0003"
-        output: 5
-      - name: Master Bedroom Fan Light
-        loadid: 4
-        module: "0003"
-        output: 1
-      - name: Master Bedroom Sconces
-        loadid: 6
-        module: "0006"
-        output: 4
-      - name: Master Bedroom Outlets
-        loadid: 5
-        module: "0016"
-        output: 1
-      - name: Master Bathroom Shower
-        loadid: 15
-        module: "0002"
-        output: 4
-      - name: Master Bathroom Tub
-        loadid: 13
-        module: "0002"
-        output: 3
-      - name: Master Bathroom Mirror
-        loadid: 14
-        module: "0008"
-        output: 3
-      - name: Master Closet
-        loadid: 16
-        module: "0004"
-        output: 2
-      - name: Track Lights
-        loadid: 2
-        module: "0006"
-        output: 1
-      - name: Alcove
-        loadid: 206
-        module: "0004"
-        output: 4
-      - name: Dining Room
-        loadid: 36
-        module: "0012"
-        output: 0
-      - name: Garage
-        loadid: 63
-        module: "0016"
-        output: 4
-      - name: Butler Pantry
-        loadid: 234
-        module: "0010"
-        output: 4
-      - name: Butler Cabinets
-        loadid: 235
-        module: "0017"
-        output: 2
-      - name: Laundry Room
-        loadid: 314
-        module: "0017"
-        output: 0
-      - name: Great Room Downlights
-        loadid: 90
-        module: "0011"
-        output: 3
-      - name: Great Room Cabinets
-        loadid: 53
-        module: "0007"
-        output: 4
-      - name: Great Room Outlets
-        loadid: 54
-        module: "0016"
-        output: 5
-      - name: Study Fan Light
-        loadid: 95
-        module: "0009"
-        output: 4
-      - name: Study Over Cabinet
-        loadid: 97
-        module: "0017"
-        output: 1
-      - name: Study Under Cabinet
-        loadid: 100
-        module: "0018"
-        output: 4
-      - name: Study Decor
-        loadid: 99
-        module: "0003"
-        output: 2
-      - name: Study Outlets
-        loadid: 101
-        module: "0014"
-        output: 3
-      - name: Nook Chandelier
-        loadid: 52
-        module: "0010"
-        output: 0
-      - name: Sun Room
-        loadid: 76
-        module: "0007"
-        output: 3
+    # Basement
+    ## Basement
+    - name: Hall Sconce Basement 1
+      module: "0022"
+      output: 4
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB50"
+    - name: Pool Table Sconces Basement 1
+      module: "0022"
+      output: 2
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB46"
+    - name: Pool Table Sconces Basement 2
+      module: "0022"
+      output: 1
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB39"
+    - name: Pool Table Chandelier
+      loadid: 269
+      module: "0001"
+      output: 0
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB07"
+    - name: Pool Table Recessed
+      loadid: 267
+      module: "0004"
+      output: 0
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB14"
+    - name: Emergency Lights Basement 1
+      module: "0016"
+      output: 6
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB55"
+    - name: Emergency Lights Basement 2
+      module: "0018"
+      output: 6
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB66"
+    - name: Bath Sconce
+      loadid: 186
+      module: "0001"
+      output: 6
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB23"
+    - name: Bath Fan Light
+      loadid: 247
+      module: "0002"
+      output: 6
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB31"
+    - name: Exercise Room Sconces Basement 1
+      module: "0004"
+      output: 1
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB17"
+    - name: Exercise Room Sconces Basement 2
+      module: "0005"
+      output: 7
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB38"
+    - name: Bath Shower Light
+      loadid: 250
+      module: "0006"
+      output: 7
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB30"
+    - name: Spare Room Fan Light
+      module: "0009"
+      output: 6
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB64"
+    - name: Spare Room Recessed Basement 1
+      loadid: 134
+      module: "0007"
+      output: 6
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB22"
+    - name: Bath Recessed
+      loadid: 183
+      module: "0011"
+      output: 4
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB28"
+    - name: Front Stairs Recesssed
+      module: "0012"
+      output: 1
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB67"
+    - name: Bar Sconce
+      module: "0003"
+      output: 4
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB18"
+    - name: TV Recessed Basement 1
+      loadid: 265
+      module: "0009"
+      output: 7
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB21"
+    - name: TV Recessed Basement 2
+      module: "0007"
+      output: 7
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB27"
+    - name: Hall Sconce Basement 2
+      module: "0009"
+      output: 0
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB65"
+    - name: Hall Recessed
+      module: "0003"
+      output: 6
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB06"
+    - name: TV Sconces
+      module: "0008"
+      output: 4
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB59"
+    - name: Bar Under Cabinet Ligh
+      module: "0013"
+      output: 6
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB20"
+    - name: Spare Room Receptacle
+      loadid: 135
+      module: "0013"
+      output: 2
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB03"
+    - name: Bath Exhaust Fan
+      loadid: 249
+      module: "0013"
+      output: 7
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB33"
+    - name: Game Room Store Light
+      module: "0017"
+      output: 6
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB53"
+    - name: Spare Room Recessed Basement 2
+      module: "0017"
+      output: 7
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB63"
+    - name: Exercise Room Receptacle
+      module: "0018"
+      output: 0
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB19"
+    - name: Spare Room Closet Light Basement 1
+      loadid: 187
+      module: "0019"
+      output: 6
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB25"
+    - name: Exercise Room Recessed
+      loadid: 167
+      module: "0022"
+      output: 3
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB08"
+    - name: Bar Receptacle
+      module: "0023"
+      output: 0
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB37"
+    - name: Bath Receptacle
+      module: "0023"
+      output: 1
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB40"
+    - name: Spare Room Closet Light Basement 2
+      module: "0023"
+      output: 3
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB34"
+    - name: Hall Receptacle 1
+      module: "0023"
+      output: 6
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB36"
+    - name: Fireplace Receptacle
+      module: "0023"
+      output: 2
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB62"
+    - name: Furnace Rm Light
+      module: "0016"
+      output: 7
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB61"
+    - name: Fireplace Mantel
+      module: "0014"
+      output: 6
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB54"
+    - name: Fireplace N Recessed
+      module: "0024"
+      output: 0
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB52"
+    - name: Fireplace S Recessed
+      module: "0024"
+      output: 5
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB51"
+    - name: Rec Room S Recessed
+      module: "0024"
+      output: 1
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB44"
+    - name: Mechanical Rm Lights
+      loadid: 280
+      module: "0018"
+      output: 7
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB70"
+    - name: Rear Stair Recessed
+      module: "0024"
+      output: 3
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB35"
+    - name: Pool Table Store Out Basement 1
+      module: "0019"
+      output: 5
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB29"
+    - name: Pool Table Store Out Basement 2
+      module: "0023"
+      output: 4
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB24"
+    - name: ClosetStair Light Basement 1
+      module: "0004"
+      output: 7
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB69"
+    - name: ClosetStair Light Basement 2
+      module: "0021"
+      output: 6
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB68"
+    - name: Wine Rm Light
+      module: "0023"
+      output: 5
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB26"
+    - name: Pool Table Receptacle
+      module: "0021"
+      output: 0
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB02"
+    - name: Rec Room Recessed
+      loadid: 266
+      module: "0005"
+      output: 0
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB15"
+    - name: Ping Pong Ping Pong Light
+      module: "0001"
+      output: 1
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB16"
+    - name: Stairs Stair Lights
+      module: "0015"
+      output: 5
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB11"
+    - name: Fireplace Sconce
+      module: "0004"
+      output: 6
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB12"
+    - name: Fireplace Recessed
+      module: "0010"
+      output: 2
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB13"
+    - name: General S Wall Lights
+      module: "0013"
+      output: 0
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB10"
+    - name: General Center Wall Lights
+      module: "0013"
+      output: 4
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB01"
+    - name: Stairs Rear Stair Lights
+      module: "0001"
+      output: 3
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB05"
+    - name: Game Room Receptacle
+      module: "0013"
+      output: 1
+      location: "Basement"
+      floor: "Basement"
+      ltcode: "LB09"
+    # First Floor
+    ## Dining Room
+    - name: Dining Room Chandelier
+      loadid: 36
+      module: "0012"
+      output: 0
+      location: "Dining Room"
+      floor: "First Floor"
+      ltcode: "L146"
+    - name: Dining Room Receptacle
+      module: "0014"
+      output: 5
+      location: "Dining Room"
+      floor: "First Floor"
+      ltcode: "L136"
+    ## Exterior
+    - name: Exterior Front Soffit Lights Exterior 1
+      module: "0007"
+      output: 2
+      location: "Exterior"
+      floor: "First Floor"
+      ltcode: "L156"
+    - name: Exterior Side Door Lights
+      module: "0012"
+      output: 4
+      location: "Exterior"
+      floor: "First Floor"
+      ltcode: "L160"
+    - name: Exterior Front Soffit Lights Exterior 2
+      module: "0012"
+      output: 3
+      location: "Exterior"
+      floor: "First Floor"
+      ltcode: "L156"
+    - name: Exterior MBed Lights
+      module: "0011"
+      output: 2
+      location: "Exterior"
+      floor: "First Floor"
+      ltcode: "L158"
+    - name: Exterior Front Front Door Lights
+      loadid: 20
+      module: "0003"
+      output: 5
+      location: "Exterior"
+      floor: "First Floor"
+      ltcode: "L149"
+    - name: Exterior Rear Tree Lights
+      module: "0003"
+      output: 0
+      location: "Exterior"
+      floor: "First Floor"
+      ltcode: "L131"
+    - name: Exterior Front Garden Light
+      module: "0015"
+      output: 1
+      location: "Exterior"
+      floor: "First Floor"
+      ltcode: "L148"
+    - name: Exterior South Tree Lights
+      module: "0006"
+      output: 2
+      location: "Exterior"
+      floor: "First Floor"
+      ltcode: "L161"
+    - name: Exterior South Yard Lights
+      module: "0006"
+      output: 5
+      location: "Exterior"
+      floor: "First Floor"
+      ltcode: "L155"
+    - name: Exterior Rear BackFireplace
+      module: "0014"
+      output: 7
+      location: "Exterior"
+      floor: "First Floor"
+      ltcode: "L152"
+    - name: Exterior Front Receptacle FNE
+      module: "0016"
+      output: 2
+      location: "Exterior"
+      floor: "First Floor"
+      ltcode: "L138"
+    - name: Exterior Porch Receptacle
+      module: "0016"
+      output: 3
+      location: "Exterior"
+      floor: "First Floor"
+      ltcode: "L169"
+    - name: Exterior MBed Nook Lights
+      module: "0014"
+      output: 4
+      location: "Exterior"
+      floor: "First Floor"
+      ltcode: "L170"
+    ## Family Room
+    - name: Family Room Recessed
+      module: "0017"
+      output: 4
+      location: "Family Room"
+      floor: "First Floor"
+      ltcode: "L172"
+    - name: Family Room Recessed Wall Cab
+      module: "0018"
+      output: 2
+      location: "Family Room"
+      floor: "First Floor"
+      ltcode: "L171"
+    - name: Family Room Decorative Lights
+      loadid: 53
+      module: "0007"
+      output: 4
+      location: "Family Room"
+      floor: "First Floor"
+      ltcode: "L119"
+    - name: Family Room Recessed 2
+      module: "0009"
+      output: 3
+      location: "Family Room"
+      floor: "First Floor"
+      ltcode: "L168"
+    - name: Family Room Down Lights
+      loadid: 90
+      module: "0011"
+      output: 3
+      location: "Family Room"
+      floor: "First Floor"
+      ltcode: "L118"
+    - name: Family Room Receptacle
+      module: "0016"
+      output: 0
+      location: "Family Room"
+      floor: "First Floor"
+      ltcode: "L135"
+    - name: Family Room Wall Outlets
+      loadid: 54
+      module: "0016"
+      output: 5
+      location: "Family Room"
+      floor: "First Floor"
+      ltcode: "L126"
 
-      # Second Floor
-      - name: Rear Chandelier
-        loadid: 105
-        module: "0008"
-        output: 5
+    ## Front
+    - name: Front Entry Chandelier
+      loadid: 23
+      module: "0002"
+      output: 0
+      location: "Front"
+      floor: "First Floor"
+      ltcode: "L143"
+    - name: Front Door Lights
+      module: "0001"
+      output: 2
+      location: "Front"
+      floor: "First Floor"
+      ltcode: "L156"
 
-      - name: Upstairs Hallway
-        loadid: 18
-        module: "0007"
-        output: 1
+    ## Garage
+    - name: Garage Front Side Soffit Light
+      module: "0002"
+      output: 1
+      location: "Garage"
+      floor: "First Floor"
+      ltcode: "L156"
+    - name: Garage Front Side NSoffit Lights
+      module: "0012"
+      output: 5
+      location: "Garage"
+      floor: "First Floor"
+      ltcode: "L156"
+    - name: Garage Front Sconce
+      module: "0006"
+      output: 3
+      location: "Garage"
+      floor: "First Floor"
+      ltcode: "L127"
+    - name: Garage Fluorescent 1
+      loadid: 63
+      module: "0016"
+      output: 4
+      location: "Garage"
+      floor: "First Floor"
+      ltcode: "L125"
 
-      - name: MBR2 Downlights
-        loadid: 120
-        module: "0004"
-        output: 3
-
-      - name: MBR2 Fan Light
-        loadid: 319
-        module: "0008"
-        output: 7
-
-      - name: MBath2 Downlights
-        loadid: 131
-        module: "0015"
-        output: 0
-
-      - name: MBath2 Mirror
-        loadid: 129
-        module: "0008"
-        output: 1
-
-      - name: MBath2 Tub
-        loadid: 128
-        module: "0005"
-        output: 2
-
-      - name: MBath2 Shower
-        loadid: 130
-        module: "0002"
-        output: 5
-
-      - name: Aiden Fan
-        loadid: 109
-        module: "0015"
-        output: 2
-
-      - name: Aiden Dormer
-        loadid: 112
-        module: "0009"
-        output: 5
-
-      - name: Aiden Outlets
-        loadid: 110
-        module: "0014"
-        output: 2
-
-      - name: Guest Fan
-        loadid: 113
-        module: "0003"
-        output: 3
-
-      - name: Guest Outlets
-        loadid: 114
-        module: "0014"
-        output: 1
-
-      - name: Jewelry Room
-        loadid: 118
-        module: "0010"
-        output: 5
-
-      # Basement
-      - name: Patrick Downlights
-        loadid: 134
-        module: "0007"
-        output: 6
-
-      - name: Patrick Outlet
-        loadid: 135
-        module: "0013"
-        output: 2
-
-      - name: Patrick Closet
-        loadid: 187
-        module: "0019"
-        output: 6
-
-      - name: BB Downlights
-        loadid: 183
-        module: "0011"
-        output: 4
-
-      - name: BB Mirror
-        loadid: 186
-        module: "0001"
-        output: 6
-
-      - name: BB Exhaust
-        loadid: 249
-        module: "0013"
-        output: 7
-
-      - name: BB Toilet
-        loadid: 247
-        module: "0002"
-        output: 6
-
-      - name: BB Shower
-        loadid: 250
-        module: "0006"
-        output: 7
-
-      - name: Pool Table Chandelier
-        loadid: 269
-        module: "0001"
-        output: 0
-
-      - name: Pool Table Downlights
-        loadid: 267
-        module: "0004"
-        output: 0
-
-      - name: Rec Downlights
-        loadid: 265
-        module: "0009"
-        output: 7
-
-      - name: Server Room
-        loadid: 280
-        module: "0018"
-        output: 7
-
-      - name: Center Downlights
-        loadid: 266
-        module: "0005"
-        output: 0
-
-      - name: Gym
-        loadid: 167
-        module: "0022"
-        output: 3
-
+    ## Kitchen
+    - name: Kitchen Recessed
+      loadid: 43
+      module: "0008"
+      output: 0
+      location: "Kitchen"
+      floor: "First Floor"
+      ltcode: "L109"
+    - name: Kitchen Sink Light
+      loadid: 49
+      module: "0002"
+      output: 2
+      location: "Kitchen"
+      floor: "First Floor"
+      ltcode: "L110"
+    - name: Kitchen Island Chandelier
+      loadid: 44
+      module: "0011"
+      output: 0
+      location: "Kitchen"
+      floor: "First Floor"
+      ltcode: "L144"
+    - name: Kitchen Above Cabinet Frige
+      module: "0017"
+      output: 3
+      location: "Kitchen"
+      floor: "First Floor"
+      ltcode: "L111"
+    - name: Kitchen Under Cabinet Light
+      loadid: 46
+      module: "0018"
+      output: 1
+      location: "Kitchen"
+      floor: "First Floor"
+      ltcode: "L114"
+    - name: Kitchen Above Cabinet Stov
+      module: "0019"
+      output: 1
+      location: "Kitchen"
+      floor: "First Floor"
+      ltcode: "L112"
+    - name: Kitchen Under Cabinet Sink
+      module: "0019"
+      output: 2
+      location: "Kitchen"
+      floor: "First Floor"
+      ltcode: "L113"
+    - name: Kitchen Under Cabinet Stov
+      module: "0019"
+      output: 3
+      location: "Kitchen"
+      floor: "First Floor"
+      ltcode: "L115"
+    - name: Kitchen Above Cabinet Sink
+      loadid: 45
+      module: "0019"
+      output: 7
+      location: "Kitchen"
+      floor: "First Floor"
+      ltcode: "L159"
+    ## Laundry Room
+    - name: Laundry Room Light
+      loadid: 314
+      module: "0017"
+      output: 0
+      location: "Laundry Room"
+      floor: "First Floor"
+      ltcode: "L142"
+    - name: Laundry Room Under Cabinet Light
+      module: "0019"
+      output: 4
+      location: "Laundry Room"
+      floor: "First Floor"
+      ltcode: "L174"
+    ## Main
+    - name: Main Hall Recessed
+      loadid: 82
+      module: "0011"
+      output: 1
+      location: "Main"
+      floor: "First Floor"
+      ltcode: "L117"
+    - name: Main Hall Bath Track
+      module: "0010"
+      output: 7
+      location: "Main"
+      floor: "First Floor"
+      ltcode: "L181"
+    - name: Main Hall Bath Exhaust Fan
+      module: "0021"
+      output: 2
+      location: "Main"
+      floor: "First Floor"
+      ltcode: "L179"
+    - name: Main Hall Bath Fan Light
+      module: "0011"
+      output: 5
+      location: "Main"
+      floor: "First Floor"
+      ltcode: "L180"
+    ## Master Suite
+    - name: Master Bath Fan Light
+      loadid: 4
+      module: "0003"
+      output: 1
+      location: "Master Suite"
+      floor: "First Floor"
+      ltcode: "L153"
+    - name: Master Bedroom Sconces
+      loadid: 6
+      module: "0006"
+      output: 4
+      location: "Master Suite"
+      floor: "First Floor"
+      ltcode: "L150"
+    - name: Master Bedroom Track Lights
+      loadid: 2
+      module: "0006"
+      output: 1
+      location: "Master Suite"
+      floor: "First Floor"
+      ltcode: "L121"
+    - name: Master Bedroom Receptacle
+      loadid: 5
+      module: "0016"
+      output: 1
+      location: "Master Suite"
+      floor: "First Floor"
+      ltcode: "L133"
+    - name: Master Bath Toilet Fan Light
+      module: "0001"
+      output: 7
+      location: "Master Suite"
+      floor: "First Floor"
+      ltcode: "L183"
+    - name: Master Bath Track
+      module: "0002"
+      output: 7
+      location: "Master Suite"
+      floor: "First Floor"
+      ltcode: "L184"
+    - name: Master Bath Shower Light
+      loadid: 15
+      module: "0002"
+      output: 4
+      location: "Master Suite"
+      floor: "First Floor"
+      ltcode: "L167"
+    - name: Master Bath Whirlpool Lights
+      loadid: 13
+      module: "0002"
+      output: 3
+      location: "Master Suite"
+      floor: "First Floor"
+      ltcode: "L123"
+    - name: Master Bedroom Closet Light
+      loadid: 16
+      module: "0004"
+      output: 2
+      location: "Master Suite"
+      floor: "First Floor"
+      ltcode: "L120"
+    - name: Master Bedroom Alcove DL
+      loadid: 206
+      module: "0004"
+      output: 4
+      location: "Master Suite"
+      floor: "First Floor"
+      ltcode: "L116"
+    - name: Master Bath Mirror Light
+      loadid: 14
+      module: "0008"
+      output: 3
+      location: "Master Suite"
+      floor: "First Floor"
+      ltcode: "L122"
+    ## Nook
+    - name: Nook Chandelier
+      loadid: 52
+      module: "0010"
+      output: 0
+      location: "Nook"
+      floor: "First Floor"
+      ltcode: "L129"
+    ## Pantry
+    - name: Pantry Recessed Pantry 1
+      loadid: 234
+      module: "0010"
+      output: 4
+      location: "Pantry"
+      floor: "First Floor"
+      ltcode: "L164"
+    - name: Pantry Recessed Pantry 2
+      module: "0012"
+      output: 2
+      location: "Pantry"
+      floor: "First Floor"
+      ltcode: "L106"
+    - name: Pantry Above Cabinet Light
+      loadid: 235
+      module: "0017"
+      output: 2
+      location: "Pantry"
+      floor: "First Floor"
+      ltcode: "L107"
+    ## Patio
+    - name: Patio Entry Light
+      module: "0005"
+      output: 1
+      location: "Patio"
+      floor: "First Floor"
+      ltcode: "L130"
+    ## Porch
+    - name: Porch Overhead Lights Porch 1
+      module: "0005"
+      output: 4
+      location: "Porch"
+      floor: "First Floor"
+      ltcode: "L162"
+    - name: Porch Overhead Lights Porch 2
+      loadid: 76
+      module: "0007"
+      output: 3
+      location: "Porch"
+      floor: "First Floor"
+      ltcode: "L145"
+    - name: Porch Fan Light
+      module: "0009"
+      output: 2
+      location: "Porch"
+      floor: "First Floor"
+      ltcode: "L157"
+    ## Rear
+    - name: Rear Bath Vanity Lights
+      module: "0012"
+      output: 6
+      location: "Rear"
+      floor: "First Floor"
+      ltcode: "L185"
+    - name: Rear Stairs 1to2 Recessed
+      module: "0015"
+      output: 4
+      location: "Rear"
+      floor: "First Floor"
+      ltcode: "L151"
+    - name: Rear Hall Recessed
+      module: "0010"
+      output: 3
+      location: "Rear"
+      floor: "First Floor"
+      ltcode: "L108"
+    - name: Rear Bath Fan Light
+      module: "0001"
+      output: 4
+      location: "Rear"
+      floor: "First Floor"
+      ltcode: "L175"
+    - name: Rear Hall Closet Light
+      module: "0010"
+      output: 1
+      location: "Rear"
+      floor: "First Floor"
+      ltcode: "L178"
+    - name: Rear Bath Vanity
+      module: "0004"
+      output: 5
+      location: "Rear"
+      floor: "First Floor"
+      ltcode: "L177"
+    ## Study
+    - name: Study Recessed MiniCans Study 1
+      loadid: 99
+      module: "0003"
+      output: 2
+      location: "Study"
+      floor: "First Floor"
+      ltcode: "L101"
+    - name: Study Fan Light
+      loadid: 95
+      module: "0009"
+      output: 4
+      location: "Study"
+      floor: "First Floor"
+      ltcode: "L154"
+    - name: Study Recessed MiniCans Study 2
+      module: "0005"
+      output: 5
+      location: "Study"
+      floor: "First Floor"
+      ltcode: "L102"
+    - name: Study Receptacle
+      loadid: 101
+      module: "0014"
+      output: 3
+      location: "Study"
+      floor: "First Floor"
+      ltcode: "L132"
+    - name: Study W Above Cabinet Lig
+      loadid: 97
+      module: "0017"
+      output: 1
+      location: "Study"
+      floor: "First Floor"
+      ltcode: "L103"
+    - name: Study Above Cabinet Desk
+      module: "0017"
+      output: 5
+      location: "Study"
+      floor: "First Floor"
+      ltcode: "L104"
+    - name: Study Under Cabinet Desk
+      module: "0018"
+      output: 3
+      location: "Study"
+      floor: "First Floor"
+      ltcode: "L105"
+    - name: Study Under Cabinet Light Study 1
+      loadid: 100
+      module: "0018"
+      output: 4
+      location: "Study"
+      floor: "First Floor"
+      ltcode: "L163"
+    - name: Study Under Cabinet Light Study 2
+      module: "0018"
+      output: 5
+      location: "Study"
+      floor: "First Floor"
+      ltcode: "L173"
+    # Second Floor
+    ## Bedroom
+    - name: Bedroom 3 Fan Light
+      loadid: 113
+      module: "0003"
+      output: 3
+      location: "Bedroom"
+      floor: "Second Floor"
+      ltcode: "L207"
+    - name: Bedroom 4 Recessed
+      module: "0007"
+      output: 5
+      location: "Bedroom"
+      floor: "Second Floor"
+      ltcode: "L204"
+    - name: Bedroom 4 Fan Light
+      module: "0009"
+      output: 1
+      location: "Bedroom"
+      floor: "Second Floor"
+      ltcode: "L206"
+    - name: Bedroom 2 Dormer Overhead Light
+      loadid: 112
+      module: "0009"
+      output: 5
+      location: "Bedroom"
+      floor: "Second Floor"
+      ltcode: "L211"
+    - name: Bedroom 4 Window Lights
+      loadid: 118
+      module: "0010"
+      output: 5
+      location: "Bedroom"
+      floor: "Second Floor"
+      ltcode: "L213"
+    - name: Bedroom 4 Receptacle
+      module: "0014"
+      output: 0
+      location: "Bedroom"
+      floor: "Second Floor"
+      ltcode: "L205"
+    - name: Bedroom 3 Receptacle
+      loadid: 114
+      module: "0014"
+      output: 1
+      location: "Bedroom"
+      floor: "Second Floor"
+      ltcode: "L203"
+    - name: Bedroom 2 Recessed
+      loadid: 110
+      module: "0014"
+      output: 2
+      location: "Bedroom"
+      floor: "Second Floor"
+      ltcode: "L202"
+    - name: Bedroom 2 Fan Light
+      loadid: 109
+      module: "0015"
+      output: 2
+      location: "Bedroom"
+      floor: "Second Floor"
+      ltcode: "L208"
+    - name: Bedroom 4 Closet Light
+      module: "0015"
+      output: 6
+      location: "Bedroom"
+      floor: "Second Floor"
+      ltcode: "L232"
+    ## Second Floor
+    - name: Rear Stair Chandelier
+      loadid: 105
+      module: "0008"
+      output: 5
+      location: "Second Floor"
+      floor: "Second Floor"
+      ltcode: "L210"
+    - name: S Bath Mirror Lights
+      module: "0006"
+      output: 6
+      location: "Second Floor"
+      floor: "Second Floor"
+      ltcode: "L224"
+    - name: Hall Closet Light
+      module: "0003"
+      output: 7
+      location: "Second Floor"
+      floor: "Second Floor"
+      ltcode: "L223"
+    - name: MBedRm Closet Light Second Floor 1
+      module: "0007"
+      output: 0
+      location: "Second Floor"
+      floor: "Second Floor"
+      ltcode: "L220"
+    - name: MBath Shower Light
+      loadid: 130
+      module: "0002"
+      output: 5
+      location: "Second Floor"
+      floor: "Second Floor"
+      ltcode: "L219"
+    - name: MBath Alcove
+      module: "0005"
+      output: 3
+      location: "Second Floor"
+      floor: "Second Floor"
+      ltcode: "L218"
+    - name: MBath Window Light
+      loadid: 128
+      module: "0005"
+      output: 2
+      location: "Second Floor"
+      floor: "Second Floor"
+      ltcode: "L217"
+    - name: MBath Mirror Lights
+      loadid: 129
+      module: "0008"
+      output: 1
+      location: "Second Floor"
+      floor: "Second Floor"
+      ltcode: "L215"
+    - name: MBedRm Recessed Lights
+      loadid: 120
+      module: "0004"
+      output: 3
+      location: "Second Floor"
+      floor: "Second Floor"
+      ltcode: "L214"
+    - name: MBath Recessed
+      loadid: 131
+      module: "0015"
+      output: 0
+      location: "Second Floor"
+      floor: "Second Floor"
+      ltcode: "L216"
+    - name: MBath Exhaust Fan Toilet
+      module: "0021"
+      output: 3
+      location: "Second Floor"
+      floor: "Second Floor"
+      ltcode: "L182"
+    - name: MBedRm Ceiling Fan
+      module: "0021"
+      output: 4
+      location: "Second Floor"
+      floor: "Second Floor"
+      ltcode: "L221"
+    - name: MBedRm Closet Light Second Floor 2
+      module: "0021"
+      output: 5
+      location: "Second Floor"
+      floor: "Second Floor"
+      ltcode: "L222"
+    - name: N Bath Shower Light
+      module: "0022"
+      output: 0
+      location: "Second Floor"
+      floor: "Second Floor"
+      ltcode: "L231"
+    - name: N Bath Exhaust Fan
+      module: "0023"
+      output: 7
+      location: "Second Floor"
+      floor: "Second Floor"
+      ltcode: "L230"
+    - name: N Bath Vanity Light
+      module: "0024"
+      output: 2
+      location: "Second Floor"
+      floor: "Second Floor"
+      ltcode: "L228"
+    - name: S Bath Exhaust Fan
+      module: "0024"
+      output: 6
+      location: "Second Floor"
+      floor: "Second Floor"
+      ltcode: "L226"
+    - name: S Bath Shower Light
+      module: "0024"
+      output: 7
+      location: "Second Floor"
+      floor: "Second Floor"
+      ltcode: "L227"
+    - name: N Bath Fan Light
+      module: "0010"
+      output: 6
+      location: "Second Floor"
+      floor: "Second Floor"
+      ltcode: "L229"
+    - name: MBedRm Receptacle
+      module: "0013"
+      output: 3
+      location: "Second Floor"
+      floor: "Second Floor"
+      ltcode: "L212"
+    - name: MBedRm Fan Light
+      loadid: 319
+      module: "0008"
+      output: 7
+      location: "Second Floor"
+      floor: "Second Floor"
+      ltcode: "L209"
+    - name: Hall Overhead Lights
+      loadid: 18
+      module: "0007"
+      output: 1
+      location: "Second Floor"
+      floor: "Second Floor"
+      ltcode: "L201"
