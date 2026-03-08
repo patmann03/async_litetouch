@@ -23,11 +23,16 @@ BITMAP = "bitmap"
 RAMP = "ramp"
 LEVELS = "levels"
 CONF_SWITCH = "switch"
+LOADID = "loadid"
+LVL = "brightness_level"
 
 # Service names (must be lowercase / underscore)
 SERVICE_SET_CLOCK = "set_clock"
 SERVICE_SET_MODULE_LEVELS = "set_module_levels"
 SERVICE_TOGGLE_SWITCH = "toggle_switch"
+SERVICE_LOAD_ON = "set_load_on"
+SERVICE_LOAD_OFF = "set_load_off"
+SERVICE_LOAD_LVL = "set_load_level"
 
 # Schemas
 TOGGLE_SWITCH_SCHEMA = vol.Schema(
@@ -42,6 +47,15 @@ MODULE_SERVICE_SCHEMA = vol.Schema(
         vol.Required(BITMAP): cv.string,
         vol.Required(RAMP): vol.Coerce(int),
         vol.Required(LEVELS): vol.All(cv.ensure_list, [vol.Coerce(int)]),
+    }
+)
+
+LOADID_SCHEMA = vol.Schema(
+    {
+        vol.Required(MODULE): cv.string,
+        vol.Required(BITMAP): cv.string,
+        vol.Required(LOADID): vol.Coerce(int),
+        vol.OPTIONAL(LVL): vol.Coerce(int),
     }
 )
 
@@ -129,4 +143,51 @@ def async_setup_services(hass: HomeAssistant, bridge) -> None:
         SERVICE_TOGGLE_SWITCH,
         handle_toggle_switch,
         schema=TOGGLE_SWITCH_SCHEMA,
+    )
+
+
+    async def turn_load_off(call: ServiceCall) -> None:
+        """Turn Load Off"""
+        loadid = call.data[LOADID]
+        _LOGGER.debug("LiteTouch service called: %s", call.service)
+        await bridge.set_load_off(loadid)
+        # await _async_call_client(hass, bridge.lt_toggle_switch, switch)
+        return True
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_LOAD_OFF,
+        turn_load_off,
+        schema=LOADID_SCHEMA,
+    )
+
+    async def turn_load_on(call: ServiceCall) -> None:
+        """Turn Load On"""
+        loadid = call.data[LOADID]
+        _LOGGER.debug("LiteTouch service called: %s", call.service)
+        await bridge.set_load_on(loadid)
+        # await _async_call_client(hass, bridge.lt_toggle_switch, switch)
+        return True
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_LOAD_ON,
+        turn_load_on,
+        schema=LOADID_SCHEMA,
+    )
+
+    async def set_load_level(call: ServiceCall) -> None:
+        """Set Load Level (Brightness)."""
+        loadid = call.data[LOADID]
+        lvl = call.data[LVL]
+        _LOGGER.debug("LiteTouch service called: %s", call.service)
+        await bridge.initialize_load_levels(loadid, lvl)
+        # await _async_call_client(hass, bridge.lt_toggle_switch, switch)
+        return True
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_LOAD_LVL,
+        set_load_level,
+        schema=LOADID_SCHEMA,
     )

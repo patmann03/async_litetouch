@@ -50,3 +50,40 @@ toggle_switch:
       name: Switch
       description: Switch identifier expected by the LiteTouch bridge
       example: "0118"
+
+set_load_on:
+  name: Set Load On
+  description: >
+    Set a load to on by load id.
+
+  fields:
+    loadid:
+      name: Load ID
+      description: Load ID of Light Group
+      example: 110
+
+set_load_off:
+  name: Set Load Off
+  description: >
+    Set a load to off by load id.
+
+  fields:
+    loadid:
+      name: Load ID
+      description: Load ID of Light Group
+      example: 110
+
+set_load_level:
+  name: Set Load Level
+  description: >
+    Set a load level.
+
+  fields:
+    loadid:
+      name: Load ID
+      description: Load ID of Light Group
+      example: 110
+    brightness_level:
+      name: Brightness Level
+      description: Brightness Percent 1-100
+      example: 50

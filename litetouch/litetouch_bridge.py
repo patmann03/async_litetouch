@@ -155,38 +155,31 @@ class LiteTouchBridge:
 
     async def set_load_off(
         self,
-        module_hex: str,
-        output: int,
-        level_pct: int,
         loadid: int,
-        transition: Optional[int] = None,
+
     ) -> None:
-
-        module_int = int(module_hex, 16)
-        transition = self._default_transition if transition is None else transition
-        _LOGGER.debug(f"module int: {module_int}  module_hex {module_hex}")
-        await self.ensure_module_cached(module_hex)
-
-        # Clone cached levels
-        current = self._module_levels.get(module_int, [-1] * 8)
-        _LOGGER.debug(
-            f"current levels: {current}, output value (module socket#): {output}"
-        )
-        new_levels = list(current)
-        new_levels[output] = max(0, min(100, int(level_pct)))
-        _LOGGER.debug(f"new levels: {new_levels}")
-
-        bitmap_hex = bitmask_for_output(output)
-
-        _LOGGER.debug(f"bitmap_hex: {bitmap_hex}")
 
         # Send DSMLV with all 8 levels so we don't accidentally change others
         await self._client.set_loads_off(loadid)
 
-        # optimistic update (controller should also push RMODU)
-        self._module_levels[module_int] = new_levels
-        for cb in list(self._listeners):
-            cb(module_int)
+    async def set_load_on(
+        self,
+        loadid: int,
+
+    ) -> None:
+
+        # Send DSMLV with all 8 levels so we don't accidentally change others
+        await self._client.set_loads_on(loadid)
+
+    async def initialize_load_levels(
+        self,
+        level_pct: int,
+        loadid: int,
+
+    ) -> None:
+
+        # Send DSMLV with all 8 levels so we don't accidentally change others
+        await self._client.initialize_load_levels(loadid, level_pct)
 
     # ---- push handler ----
 
