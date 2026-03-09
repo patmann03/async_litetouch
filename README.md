@@ -24,11 +24,11 @@ light:
     ##Basement
 
     - name: Hall Sconce Basement 1
-      module: "0022"
-      output: 4
-      location: "Basement"
-      floor: "Basement"
-      ltcode: "LB50"
+      module: "0022"  #Required
+      output: 4  #Required
+      location: "Basement"  #Optional
+      floor: "Basement" #Optional
+      ltcode: "LB50" #Optional - this is the load number that my installers used
     - name: Pool Table Sconces Basement 1
       module: "0022"
       output: 2
