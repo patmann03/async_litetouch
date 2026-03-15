@@ -37,6 +37,7 @@ from .services import async_setup_services
 
 _LOGGER = logging.getLogger(__name__)
 
+# Configs
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Required(CONF_HOST): cv.string,
