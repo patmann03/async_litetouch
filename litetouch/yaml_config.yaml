@@ -1,18 +1,18 @@
-  - platform: litetouch
-    host: 10.3.1.35
-    port: 10001
+litetouch:
+  host: 10.3.1.35
+  port: 10001
 
-    # 4 concurrent command sockets (as requested)
-    command_connections: 8
+  # 4 concurrent command sockets (as requested)
+  command_connections: 8
 
-    # Keep notifications isolated on a separate socket (recommended)
-    event_connection: true
+  # Keep notifications isolated on a separate socket (recommended)
+  event_connection: true
 
-    # default fade time (seconds) for DSMLV transitions
-    transition: 2
+  # default fade time (seconds) for DSMLV transitions
+  transition: 2
 
-    # Your lights
-    lights:
+  # Your lights
+  lights:
     # Basement
     ## Basement
     - name: Hall Sconce Basement 1

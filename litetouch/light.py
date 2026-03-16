@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import voluptuous as vol
 
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
@@ -9,13 +8,7 @@ from homeassistant.components.light import (
     ColorMode,
     LightEntity,
     LightEntityFeature,
-    PLATFORM_SCHEMA,
 )
-from homeassistant.const import CONF_HOST, CONF_PORT
-import homeassistant.helpers.config_validation as cv
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 from .const import (
     CONF_COMMAND_CONNECTIONS,
@@ -33,75 +26,8 @@ from .const import (
     CONF_LTCODE,
 )
 from .litetouch_bridge import LiteTouchBridge, pct_to_ha, ha_to_pct
-from .services import async_setup_services
 
 _LOGGER = logging.getLogger(__name__)
-
-# Configs
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
-    {
-        vol.Required(CONF_HOST): cv.string,
-        vol.Required(CONF_PORT): cv.port,
-        vol.Optional(CONF_COMMAND_CONNECTIONS, default=4): vol.Coerce(int),
-        vol.Optional(CONF_EVENT_CONNECTION, default=True): cv.boolean,
-        vol.Optional(CONF_TRANSITION, default=1): vol.Coerce(int),
-        vol.Required(CONF_LIGHTS): vol.All(
-            cv.ensure_list,
-            [
-                {
-                    vol.Required(CONF_NAME): cv.string,
-                    vol.Required(CONF_MODULE): cv.string,  # hex string e.g. "0032"
-                    vol.Required(CONF_OUTPUT): vol.Coerce(int),  # 0..7 - 0 based.
-                    vol.Optional(CONF_LOADID): vol.Coerce(int),
-                    vol.Optional(CONF_STATION): vol.Coerce(int),
-                    vol.Optional(CONF_BUTTON): vol.Coerce(int),
-                    vol.Optional(CONF_LOCATION): cv.string,
-                    vol.Optional(CONF_FLOOR): cv.string,
-                    vol.Optional(CONF_LTCODE): cv.string,
-                }
-            ],
-        ),
-    }
-)
-
-
-async def async_setup_platform(
-    hass: HomeAssistant,
-    config: ConfigType,
-    async_add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None,
-) -> None:
-    """Set up LiteTouch lights from YAML (async platform). [3](https://developers.home-assistant.io/docs/asyncio_working_with_async/)"""
-
-    host = config[CONF_HOST]
-    port = config[CONF_PORT]
-    command_connections = config[CONF_COMMAND_CONNECTIONS]
-    event_connection = config[CONF_EVENT_CONNECTION]
-    transition = config[CONF_TRANSITION]
-
-    bridge = LiteTouchBridge(
-        host,
-        port,
-        command_connections=command_connections,
-        event_connection=event_connection,
-        default_transition=transition,
-    )
-
-    await bridge.start()
-
-    # Ensure we close cleanly on shutdown
-    async def _shutdown(_event):
-        await bridge.stop()
-
-    hass.bus.async_listen_once("homeassistant_stop", _shutdown)
-
-    entities = []
-    for item in config[CONF_LIGHTS]:
-        entities.append(LiteTouchLightEntity(bridge, item, transition))
-
-    async_add_entities(entities, update_before_add=False)
-
-    async_setup_services(hass, bridge)
 
 
 class LiteTouchLightEntity(LightEntity):
