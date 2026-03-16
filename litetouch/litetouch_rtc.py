@@ -107,7 +107,7 @@ class _LiteTouchTransport:
         on_message: Optional[Callable[[LiteTouchResponse], None]] = None,
         print_raw: bool = False,
         send_lock: Optional[asyncio.Lock] = None,
-        keepalive_interval: float = 30.0,     # NEW
+        keepalive_interval: float = 15.0,     # NEW
         keepalive_command: str = "R,SIEVN,7",   # NEW (no trailing \r needed)
 
     ):
