@@ -1,34 +1,35 @@
-import logging
-from datetime import timedelta
+"""LiteTouch integration."""
 
+from __future__ import annotations
+
+import logging
+
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import EntityPlatform
 
 from .const import (
     CONF_COMMAND_CONNECTIONS,
     CONF_EVENT_CONNECTION,
     CONF_TRANSITION,
-    CONF_LIGHTS,
     CONF_HOST,
     CONF_PORT,
+    DOMAIN,
 )
 from .litetouch_bridge import LiteTouchBridge
-from .light import LiteTouchLightEntity
 from .services import async_setup_services
 
 _LOGGER = logging.getLogger(__name__)
 
-async def async_setup(hass: HomeAssistant, config: dict) -> bool:
-    """Set up LiteTouch from YAML."""
-    lt_config = config.get("litetouch")
-    if not lt_config:
-        return True
 
-    host = lt_config[CONF_HOST]
-    port = lt_config[CONF_PORT]
-    command_connections = lt_config.get(CONF_COMMAND_CONNECTIONS, 4)
-    event_connection = lt_config.get(CONF_EVENT_CONNECTION, True)
-    transition = lt_config.get(CONF_TRANSITION, 1)
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up LiteTouch from a config entry."""
+    hass.data.setdefault(DOMAIN, {})
+
+    host = entry.data[CONF_HOST]
+    port = entry.data[CONF_PORT]
+    command_connections = entry.data.get(CONF_COMMAND_CONNECTIONS, 4)
+    event_connection = entry.data.get(CONF_EVENT_CONNECTION, True)
+    transition = entry.data.get(CONF_TRANSITION, 1)
 
     bridge = LiteTouchBridge(
         host,
@@ -44,24 +45,45 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     async def _shutdown(_event):
         await bridge.stop()
 
-    hass.bus.async_listen_once("homeassistant_stop", _shutdown)
+    entry.async_on_unload(hass.bus.async_listen_once("homeassistant_stop", _shutdown))
 
-    entities = []
-    for item in lt_config[CONF_LIGHTS]:
-        entities.append(LiteTouchLightEntity(bridge, item, transition))
+    # Store the bridge
+    hass.data[DOMAIN][entry.entry_id] = {"bridge": bridge, "config": entry}
 
-    # Create a platform to add the entities
-    platform = EntityPlatform(
-        hass=hass,
-        logger=_LOGGER,
-        domain="light",
-        platform_name="litetouch",
-        platform=None,
-        scan_interval=timedelta.max,
-        entity_namespace=None,
-    )
-    await platform.async_add_entities(entities)
+    # Reload integration when options change
+    entry.async_on_unload(entry.add_update_listener(_async_update_options))
 
+    # Set up services
     async_setup_services(hass, bridge)
 
+    # Forward the setup to the light platform
+    await hass.config_entries.async_forward_entry_setups(entry, ["light"])
+
+    return True
+
+
+async def _async_update_options(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Reload the config entry when options are changed."""
+    await hass.config_entries.async_reload(entry.entry_id)
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    data = hass.data[DOMAIN][entry.entry_id]
+    bridge = data["bridge"]
+    await bridge.stop()
+
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, ["light"])
+    if unload_ok:
+        hass.data[DOMAIN].pop(entry.entry_id)
+    return unload_ok
+
+
+# Keep YAML setup for backward compatibility, but mark as deprecated
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+    """Set up LiteTouch from YAML (deprecated)."""
+    _LOGGER.warning(
+        "YAML configuration for LiteTouch is deprecated. Please use the UI."
+    )
+    # You could implement YAML setup here if needed, but since we're moving to UI, perhaps not.
     return True
