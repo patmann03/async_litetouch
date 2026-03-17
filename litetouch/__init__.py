@@ -4,21 +4,87 @@ from __future__ import annotations
 
 import logging
 
-from homeassistant.config_entries import ConfigEntry
+import voluptuous as vol
+
+from homeassistant.config_entries import ConfigEntry, SOURCE_IMPORT
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.typing import ConfigType
 
 from .const import (
+    CONF_BUTTON,
     CONF_COMMAND_CONNECTIONS,
     CONF_EVENT_CONNECTION,
-    CONF_TRANSITION,
+    CONF_FLOOR,
     CONF_HOST,
+    CONF_LIGHTS,
+    CONF_LOADID,
+    CONF_LOCATION,
+    CONF_LTCODE,
+    CONF_MODULE,
+    CONF_NAME,
+    CONF_OUTPUT,
     CONF_PORT,
+    CONF_STATION,
+    CONF_TRANSITION,
     DOMAIN,
 )
 from .litetouch_bridge import LiteTouchBridge
 from .services import async_setup_services
 
 _LOGGER = logging.getLogger(__name__)
+
+LIGHT_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_NAME): cv.string,
+        vol.Optional(CONF_MODULE): cv.string,
+        vol.Optional(CONF_OUTPUT): int,
+        vol.Optional(CONF_LOADID): int,
+        vol.Optional(CONF_STATION): cv.string,
+        vol.Optional(CONF_BUTTON): cv.string,
+        vol.Optional(CONF_LOCATION): cv.string,
+        vol.Optional(CONF_FLOOR): cv.string,
+        vol.Optional(CONF_LTCODE): cv.string,
+    }
+)
+
+CONFIG_SCHEMA = vol.Schema(
+    {
+        DOMAIN: vol.Schema(
+            {
+                vol.Required(CONF_HOST): cv.string,
+                vol.Optional(CONF_PORT, default=10001): cv.port,
+                vol.Optional(CONF_COMMAND_CONNECTIONS, default=4): vol.All(
+                    int, vol.Range(min=1)
+                ),
+                vol.Optional(CONF_EVENT_CONNECTION, default=True): cv.boolean,
+                vol.Optional(CONF_TRANSITION, default=2): vol.All(
+                    int, vol.Range(min=0)
+                ),
+                vol.Optional(CONF_LIGHTS, default=[]): vol.All(
+                    cv.ensure_list, [LIGHT_SCHEMA]
+                ),
+            }
+        )
+    },
+    extra=vol.ALLOW_EXTRA,
+)
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Set up LiteTouch from YAML configuration if present."""
+    if DOMAIN not in config:
+        return True
+
+    _LOGGER.debug("LiteTouch YAML config found, importing via config entry")
+    hass.async_create_task(
+        hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": SOURCE_IMPORT},
+            data=dict(config[DOMAIN]),
+        )
+    )
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -29,7 +95,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     port = entry.data[CONF_PORT]
     command_connections = entry.data.get(CONF_COMMAND_CONNECTIONS, 4)
     event_connection = entry.data.get(CONF_EVENT_CONNECTION, True)
-    transition = entry.data.get(CONF_TRANSITION, 1)
+    transition = entry.data.get(CONF_TRANSITION, 2)
 
     bridge = LiteTouchBridge(
         host,
@@ -77,13 +143,3 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
     return unload_ok
-
-
-# Keep YAML setup for backward compatibility, but mark as deprecated
-async def async_setup(hass: HomeAssistant, config: dict) -> bool:
-    """Set up LiteTouch from YAML (deprecated)."""
-    _LOGGER.warning(
-        "YAML configuration for LiteTouch is deprecated. Please use the UI."
-    )
-    # You could implement YAML setup here if needed, but since we're moving to UI, perhaps not.
-    return True

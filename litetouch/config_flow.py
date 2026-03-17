@@ -62,6 +62,21 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Get the options flow for this handler."""
         return OptionsFlow(config_entry)
 
+    async def async_step_import(self, import_config: dict[str, Any]) -> FlowResult:
+        """Handle import from YAML configuration."""
+        # Abort if already configured for this host
+        self._async_abort_entries_match({CONF_HOST: import_config[CONF_HOST]})
+
+        lights = import_config.get(CONF_LIGHTS, [])
+        data = {k: v for k, v in import_config.items() if k != CONF_LIGHTS}
+
+        _LOGGER.debug("Importing LiteTouch from YAML: host=%s", data.get(CONF_HOST))
+        return self.async_create_entry(
+            title="LiteTouch",
+            data=data,
+            options={CONF_LIGHTS: lights},
+        )
+
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:

@@ -107,8 +107,8 @@ class _LiteTouchTransport:
         on_message: Optional[Callable[[LiteTouchResponse], None]] = None,
         print_raw: bool = False,
         send_lock: Optional[asyncio.Lock] = None,
-        keepalive_interval: float = 15.0,     # NEW
-        keepalive_command: str = "R,SIEVN,7",   # NEW (no trailing \r needed)
+        keepalive_interval: float = 60.0,     # NEW
+        keepalive_command: str = "R,DGCLK",   # NEW (no trailing \r needed)
 
     ):
         self.name = name
@@ -186,6 +186,9 @@ class _LiteTouchTransport:
     async def _connect(self) -> None:
         self._reader, self._writer = await asyncio.open_connection(self.host, self.port)
         _LOGGER.info("[%s] connected to %s:%s", self.name, self.host, self.port)
+        await asyncio.sleep(2.0)
+        await self.send("R,SIEVN,7") # enable all internal events by default; can be customized per use case
+        
 
     async def _keepalive_loop(self) -> None:
         """

@@ -10,7 +10,7 @@ from homeassistant.components.light import (
     LightEntityFeature,
 )
 
-from .const import (
+from ..const import (
     CONF_COMMAND_CONNECTIONS,
     CONF_EVENT_CONNECTION,
     CONF_TRANSITION,
@@ -25,7 +25,7 @@ from .const import (
     CONF_FLOOR,
     CONF_LTCODE,
 )
-from .litetouch_bridge import LiteTouchBridge, pct_to_ha, ha_to_pct
+from ..litetouch_bridge import LiteTouchBridge, pct_to_ha, ha_to_pct
 
 _LOGGER = logging.getLogger(__name__)
 
