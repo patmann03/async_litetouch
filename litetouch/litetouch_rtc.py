@@ -155,12 +155,12 @@ class _LiteTouchTransport:
         self._stop.set()
         if self._keepalive_task:
             self._keepalive_task.cancel()
-            with contextlib.suppress(Exception):
+            with contextlib.suppress(Exception, asyncio.CancelledError):
                 await self._keepalive_task
 
         if self._reader_task:
             self._reader_task.cancel()
-            with contextlib.suppress(Exception):
+            with contextlib.suppress(Exception, asyncio.CancelledError):
                 await self._reader_task
         await self._disconnect()
 
@@ -175,7 +175,7 @@ class _LiteTouchTransport:
             try:
                 self._writer.close()
                 await self._writer.wait_closed()
-            except Exception:
+            except (OSError, asyncio.CancelledError):
                 pass
         self._reader = None
         self._writer = None
@@ -183,7 +183,6 @@ class _LiteTouchTransport:
     async def _connect(self) -> None:
         self._reader, self._writer = await asyncio.open_connection(self.host, self.port)
         _LOGGER.info("[%s] connected to %s:%s", self.name, self.host, self.port)
-        await asyncio.sleep(2.0)
         await self.send("R,SIEVN,7") # enable all internal events by default; can be customized per use case
         
 
@@ -207,14 +206,17 @@ class _LiteTouchTransport:
                     )
                     _LOGGER.debug("[%s] keepalive OK (DGCLK)", self.name)
             except asyncio.CancelledError:
-                break
+                return  # stop immediately; don't run the interval sleep
             except Exception as e:
                 _LOGGER.warning(
                     "[%s] keepalive failed: %s — forcing disconnect", self.name, e
                 )
                 await self._disconnect()
-            finally:
+
+            try:
                 await asyncio.sleep(self.keepalive_interval)
+            except asyncio.CancelledError:
+                return  # cancelled during sleep; stop cleanly
 
     async def _run(self) -> None:
         delay = self.reconnect_min_delay
@@ -390,7 +392,7 @@ class LiteTouchClient:
                 port=self.port,
                 on_message=self._handle_unsolicited,
                 print_raw=self.print_raw,
-                keepalive_interval=60.0,
+                keepalive_interval=30.0,
             )
 
         # User event callbacks
