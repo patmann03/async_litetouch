@@ -58,9 +58,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry: config_entries.ConfigEntry):
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> OptionsFlow:
         """Get the options flow for this handler."""
-        return OptionsFlow(config_entry)
+        return OptionsFlow()
 
     async def async_step_import(self, import_config: dict[str, Any]) -> FlowResult:
         """Handle import from YAML configuration."""
@@ -151,13 +153,8 @@ LIGHT_SELECTOR = {
 }
 
 
-class OptionsFlow(config_entries.OptionsFlow):
+class OptionsFlow(config_entries.OptionsFlowWithReload):
     """Handle options flow for LiteTouch."""
-
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize options flow."""
-        # store config entry privately; OptionsFlow provides a read-only property.
-        self._config_entry = config_entry
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -182,7 +179,7 @@ class OptionsFlow(config_entries.OptionsFlow):
         )
 
     def _get_schema(self) -> vol.Schema:
-        options = self._config_entry.options
+        options = self.config_entry.options
         lights = options.get(CONF_LIGHTS, [])
 
         return vol.Schema(
