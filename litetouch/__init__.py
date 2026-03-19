@@ -116,9 +116,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Store the bridge
     hass.data[DOMAIN][entry.entry_id] = {"bridge": bridge, "config": entry}
 
-    # Reload integration when options change
-    entry.async_on_unload(entry.add_update_listener(_async_update_options))
-
     # Set up services
     async_setup_services(hass, bridge)
 
@@ -126,11 +123,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await hass.config_entries.async_forward_entry_setups(entry, ["light"])
 
     return True
-
-
-async def _async_update_options(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Reload the config entry when options are changed."""
-    await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
