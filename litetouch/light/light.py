@@ -158,10 +158,6 @@ class LiteTouchLightEntity(LightEntity):
             transition=transition,
         )
 
-        # optimistic update
-        # self._is_on = level_pct > 0
-        # self._brightness = pct_to_ha(level_pct)
-        # self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs) -> None:
         if ATTR_TRANSITION in kwargs:
@@ -169,13 +165,6 @@ class LiteTouchLightEntity(LightEntity):
         else:
             transition = self._default_transition
 
-        # await self._bridge.set_load_off(
-        #     self._module_hex,
-        #     self._output,
-        #     0,
-        #     self._loadid,
-        #     transition=transition,
-        # )
 
         await self._bridge.set_output_level(
             self._module_hex,
@@ -184,7 +173,4 @@ class LiteTouchLightEntity(LightEntity):
             # self._loadid,
             transition=transition,
         )
-        # Oportunistic update
-        # self._is_on = False
-        # self._brightness = 0
-        # self.async_write_ha_state()
+
