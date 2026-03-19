@@ -1,6 +1,7 @@
 import asyncio
 import contextlib
 import logging
+import time
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Tuple, Any
 
@@ -107,9 +108,8 @@ class _LiteTouchTransport:
         on_message: Optional[Callable[[LiteTouchResponse], None]] = None,
         print_raw: bool = False,
         send_lock: Optional[asyncio.Lock] = None,
-        keepalive_interval: float = 60.0,     # NEW
-        keepalive_command: str = "R,DGCLK",   # NEW (no trailing \r needed)
-
+        keepalive_interval: float = 60.0,
+        send_delay_ms: float = 10.0,
     ):
         self.name = name
         self.host = host
@@ -120,11 +120,11 @@ class _LiteTouchTransport:
         self.on_message = on_message
         self.print_raw = print_raw
 
-
         self.keepalive_interval = keepalive_interval
-        self.keepalive_command = keepalive_command
-        self._keepalive_task: Optional[asyncio.Task] = None  # NEW
+        self._keepalive_task: Optional[asyncio.Task] = None
 
+        self.send_delay_ms = send_delay_ms
+        self._last_send_time: float = 0.0
 
         self._send_lock = send_lock or asyncio.Lock()
         self._reader: Optional[asyncio.StreamReader] = None
@@ -143,15 +143,13 @@ class _LiteTouchTransport:
         return self._writer is not None and not self._writer.is_closing()
 
     async def start(self) -> None:
-        
+
         self._stop.clear()
         self._reader_task = asyncio.create_task(self._run(), name=f"{self.name}-reader")
         if self.keepalive_interval and self.keepalive_interval > 0:
             self._keepalive_task = asyncio.create_task(
                 self._keepalive_loop(), name=f"{self.name}-keepalive"
-        )
-
-
+            )
 
     async def close(self) -> None:
         self._stop.set()
@@ -165,7 +163,6 @@ class _LiteTouchTransport:
             with contextlib.suppress(Exception):
                 await self._reader_task
         await self._disconnect()
-
 
         # Cancel any pending waiters
         for _, fut in self._waiters:
@@ -192,26 +189,30 @@ class _LiteTouchTransport:
 
     async def _keepalive_loop(self) -> None:
         """
-        Periodically send a lightweight command to keep NAT/controller from
-        closing an idle TCP session.
+        Periodically send DGCLK (get clock) and await the DGCLK response to
+        confirm the controller is alive.  On failure, disconnect so _run()
+        can reconnect with backoff.
         """
         # small offset so we don't hammer immediately at startup
-        await asyncio.sleep(1.0)
+        await asyncio.sleep(2.0)
 
         while not self._stop.is_set():
             try:
                 # Only send keepalive if connected; if not, let _run() reconnect.
                 if self.is_connected:
-                    # Use send() so we don't create a waiter/future
-                    await self.send(self.keepalive_command)
-                    _LOGGER.debug("Keep Litetouch Controller Alive")
+                    await self.request(
+                        "R,DGCLK",
+                        expect=lambda r: r.kind == "RQRES" and r.cmd == "DGCLK",
+                        timeout=5.0,
+                    )
+                    _LOGGER.debug("[%s] keepalive OK (DGCLK)", self.name)
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                _LOGGER.debug("[%s] keepalive send failed: %s", self.name, e)
-                # force a disconnect; _run() will reconnect with backoff
-                with contextlib.suppress(Exception):
-                    await self._disconnect()
+                _LOGGER.warning(
+                    "[%s] keepalive failed: %s — forcing disconnect", self.name, e
+                )
+                await self._disconnect()
             finally:
                 await asyncio.sleep(self.keepalive_interval)
 
@@ -282,12 +283,19 @@ class _LiteTouchTransport:
             command = command + "\r"
 
         async with self._send_lock:
+            if self.send_delay_ms > 0 and self._last_send_time > 0:
+                elapsed_ms = (time.monotonic() - self._last_send_time) * 1000
+                remaining_ms = self.send_delay_ms - elapsed_ms
+                if remaining_ms > 0:
+                    await asyncio.sleep(remaining_ms / 1000)
+
             await self._ensure_connected()
             assert self._writer is not None
             if self.print_raw:
                 print(f"[{self.name}] >> {command.strip()}")
             self._writer.write(command.encode("ascii", errors="replace"))
             await self._writer.drain()
+            self._last_send_time = time.monotonic()
 
     async def request(
         self,
@@ -370,6 +378,7 @@ class LiteTouchClient:
                     port=self.port,
                     on_message=self._handle_unsolicited,
                     print_raw=self.print_raw,
+                    keepalive_interval=0,  # keepalive runs on event transport only
                 )
             )
 
@@ -381,6 +390,7 @@ class LiteTouchClient:
                 port=self.port,
                 on_message=self._handle_unsolicited,
                 print_raw=self.print_raw,
+                keepalive_interval=60.0,
             )
 
         # User event callbacks
