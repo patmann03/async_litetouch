@@ -195,6 +195,106 @@ class LiteTouchBridge:
         
         await self._client.initialize_load_levels(loadid, level_pct)
 
+    async def press_switch(self, ssso: str) -> None:
+        """Press a keypad button (CPRSW)."""
+        await self._client.press_switch(ssso)
+
+    async def hold_switch(self, ssso: str) -> None:
+        """Hold a keypad button (CHDSW)."""
+        await self._client.hold_switch(ssso)
+
+    async def release_switch(self, ssso: str) -> None:
+        """Release a held keypad button (CRLSW)."""
+        await self._client.release_switch(ssso)
+
+    async def press_hold_switch(self, ssso: str) -> None:
+        """Press and hold a keypad button (CPHSW)."""
+        await self._client.press_hold_switch(ssso)
+
+    async def set_led_on(self, ssso: str) -> None:
+        """Turn on a keypad LED (CLDON)."""
+        await self._client.set_led_on(ssso)
+
+    async def set_led_off(self, ssso: str) -> None:
+        """Turn off a keypad LED (CLDOF)."""
+        await self._client.set_led_off(ssso)
+
+    async def recall_load_preset(self, load_group: int) -> None:
+        """Recall saved preset levels for a load group (CSLLV)."""
+        await self._client.set_load_levels(load_group)
+
+    async def restore_load_states(self, load_group: int) -> None:
+        """Restore previous load states for a load group (CSPLS)."""
+        await self._client.set_previous_load_states(load_group)
+
+    async def open_loads(self, load_group: int) -> None:
+        """Open relay loads in a load group (COPNL)."""
+        await self._client.open_loads(load_group)
+
+    async def close_loads(self, load_group: int) -> None:
+        """Close relay loads in a load group (CCLSL)."""
+        await self._client.close_loads(load_group)
+
+    async def stop_loads(self, load_group: int) -> None:
+        """Stop loads in a load group (CSTPL)."""
+        await self._client.stop_loads(load_group)
+
+    async def start_ramp(self, load_group: int) -> None:
+        """Start ramping a load group (CSTRP)."""
+        await self._client.start_ramp(load_group)
+
+    async def stop_ramp(self, load_group: int) -> None:
+        """Stop ramping a load group (CSPRP)."""
+        await self._client.stop_ramp(load_group)
+
+    async def start_ramp_to_min(self, load_group: int) -> None:
+        """Ramp a load group to its minimum level (CSRMN)."""
+        await self._client.start_ramp_to_min(load_group)
+
+    async def start_ramp_to_max(self, load_group: int) -> None:
+        """Ramp a load group to its maximum level (CSRMX)."""
+        await self._client.start_ramp_to_max(load_group)
+
+    async def lock_loads(self, load_group: int) -> None:
+        """Lock a load group (CLCKL)."""
+        await self._client.lock_loads(load_group)
+
+    async def unlock_loads(self, load_group: int) -> None:
+        """Unlock a load group (CUNLL)."""
+        await self._client.unlock_loads(load_group)
+
+    async def lock_switch(self, ssso: str) -> None:
+        """Lock a keypad switch (CLCKS)."""
+        await self._client.lock_switch(ssso)
+
+    async def unlock_switch(self, ssso: str) -> None:
+        """Unlock a keypad switch (CUNLS)."""
+        await self._client.unlock_switch(ssso)
+
+    async def lock_timer(self, timer_id: int) -> None:
+        """Lock a timer (CLCKT)."""
+        await self._client.lock_timer(timer_id)
+
+    async def unlock_timer(self, timer_id: int) -> None:
+        """Unlock a timer (CUNLT)."""
+        await self._client.unlock_timer(timer_id)
+
+    async def increment_load_levels(self, load_group: int, step: int) -> None:
+        """Increment load group brightness by a step amount (CUPLL)."""
+        await self._client.increment_load_levels(load_group, step)
+
+    async def decrement_load_levels(self, load_group: int, step: int) -> None:
+        """Decrement load group brightness by a step amount (CDNLL)."""
+        await self._client.decrement_load_levels(load_group, step)
+
+    async def set_global(self, address: int, value: int) -> None:
+        """Set a controller global variable (CSETG)."""
+        await self._client.set_global(address, value)
+
+    async def save_load_preset(self, load_group: int) -> None:
+        """Copy current levels to preset for a load group (CGCLV)."""
+        await self._client.copy_current_to_preset_levels(load_group)
+
     # ---- push handler ----
 
     async def set_output_level(

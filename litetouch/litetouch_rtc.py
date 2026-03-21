@@ -183,7 +183,7 @@ class _LiteTouchTransport:
     async def _connect(self) -> None:
         self._reader, self._writer = await asyncio.open_connection(self.host, self.port)
         _LOGGER.info("[%s] connected to %s:%s", self.name, self.host, self.port)
-        await self.send("R,SIEVN,7") # enable all internal events by default; can be customized per use case
+        await self.send("R,SIEVN,5") # enable module and keypad events
         
 
     async def _keepalive_loop(self) -> None:

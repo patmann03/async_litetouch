@@ -2,33 +2,35 @@ set_clock:
   name: Set Clock
   description: >
     Set the LiteTouch system clock to the current Home Assistant time.
+    Syncs the controller's internal clock to prevent drift.
 
   fields: {}
 
 set_module_levels:
   name: Set Module Levels
   description: >
-    Set output levels for a LiteTouch module.
+    Set output levels for a LiteTouch dimmer module using a sparse bitmap.
+    The bitmap specifies which outputs are included; only those levels are sent.
 
   fields:
     module:
       name: Module
-      description: Module hex address
+      description: Module address in hex (3–4 characters)
       example: "0007"
 
     bitmap:
       name: Bitmap
-      description: Output bitmap (hex)
+      description: Output selection bitmap in hex (bit N = output N)
       example: "FF"
 
     ramp:
       name: Ramp Time
-      description: Ramp time in seconds
+      description: Transition time in seconds
       example: 1
 
     levels:
       name: Levels
-      description: List of output levels
+      description: List of brightness levels (0–100) for selected outputs
       example:
         - 100
         - 80
@@ -38,52 +40,355 @@ set_module_levels:
         - 100
         - 100
         - 100
-        - 100
 
 toggle_switch:
   name: Toggle Switch
   description: >
-    Toggle a LiteTouch switch (equivalent to a physical button press).
+    Toggle a LiteTouch keypad button (CTGSW) — equivalent to pressing a button
+    that is already in the opposite state. Use press_switch for an explicit press.
 
   fields:
     switch:
       name: Switch
-      description: Switch identifier expected by the LiteTouch bridge
+      description: >
+        Station + output address in ssso format (4 characters: 3-digit station + 1-digit output).
+      example: "0118"
+
+press_switch:
+  name: Press Switch
+  description: >
+    Send an explicit button-press event to a keypad switch (CPRSW).
+    Simulates a momentary press without a corresponding hold or release.
+
+  fields:
+    switch:
+      name: Switch
+      description: Station + output address (ssso format, e.g. station 011, output 8)
+      example: "0118"
+
+hold_switch:
+  name: Hold Switch
+  description: >
+    Send a hold event to a keypad switch (CHDSW). Use release_switch
+    to release it afterward.
+
+  fields:
+    switch:
+      name: Switch
+      description: Station + output address (ssso format)
+      example: "0118"
+
+release_switch:
+  name: Release Switch
+  description: >
+    Release a previously held keypad switch (CRLSW).
+
+  fields:
+    switch:
+      name: Switch
+      description: Station + output address (ssso format)
+      example: "0118"
+
+press_hold_switch:
+  name: Press and Hold Switch
+  description: >
+    Send a combined press-and-hold event to a keypad switch (CPHSW).
+
+  fields:
+    switch:
+      name: Switch
+      description: Station + output address (ssso format)
+      example: "0118"
+
+set_led_on:
+  name: Set LED On
+  description: >
+    Turn on the LED indicator for a specific keypad button (CLDON).
+
+  fields:
+    switch:
+      name: Switch
+      description: Station + output address of the LED (ssso format)
+      example: "0118"
+
+set_led_off:
+  name: Set LED Off
+  description: >
+    Turn off the LED indicator for a specific keypad button (CLDOF).
+
+  fields:
+    switch:
+      name: Switch
+      description: Station + output address of the LED (ssso format)
+      example: "0118"
+
+lock_switch:
+  name: Lock Switch
+  description: >
+    Lock a keypad switch so it cannot be operated (CLCKS).
+    Use unlock_switch to restore operation.
+
+  fields:
+    switch:
+      name: Switch
+      description: Station + output address (ssso format)
+      example: "0118"
+
+unlock_switch:
+  name: Unlock Switch
+  description: >
+    Unlock a previously locked keypad switch (CUNLS).
+
+  fields:
+    switch:
+      name: Switch
+      description: Station + output address (ssso format)
       example: "0118"
 
 set_load_on:
   name: Set Load On
   description: >
-    Set a load to on by load id.
+    Turn on all loads in a named load group (CSLON).
 
   fields:
     loadid:
       name: Load ID
-      description: Load ID of Light Group
+      description: Load group ID as configured in the controller
       example: 110
 
 set_load_off:
   name: Set Load Off
   description: >
-    Set a load to off by load id.
+    Turn off all loads in a named load group (CSLOF).
 
   fields:
     loadid:
       name: Load ID
-      description: Load ID of Light Group
+      description: Load group ID as configured in the controller
       example: 110
 
 set_load_level:
   name: Set Load Level
   description: >
-    Set a load level.
+    Set the brightness of a load group to a specific level (CINLL).
+    This initializes the dimmer to the given percentage without a ramp.
 
   fields:
     loadid:
       name: Load ID
-      description: Load ID of Light Group
+      description: Load group ID as configured in the controller
       example: 110
     brightness_level:
       name: Brightness Level
-      description: Brightness Percent 1-100
+      description: Target brightness as a percentage (0–100)
       example: 50
+
+recall_load_preset:
+  name: Recall Load Preset
+  description: >
+    Recall the saved preset levels for a load group (CSLLV).
+    Restores all loads to the dimmer levels that were previously saved as the preset.
+
+  fields:
+    loadid:
+      name: Load ID
+      description: Load group ID as configured in the controller
+      example: 110
+
+restore_load_states:
+  name: Restore Previous Load States
+  description: >
+    Restore the previous on/off and level states for a load group (CSPLS).
+    Useful for returning to the state before the last scene change.
+
+  fields:
+    loadid:
+      name: Load ID
+      description: Load group ID as configured in the controller
+      example: 110
+
+save_load_preset:
+  name: Save Load Preset
+  description: >
+    Copy the current levels for a load group into the preset memory (CGCLV).
+    Future recall_load_preset calls will restore these levels.
+
+  fields:
+    loadid:
+      name: Load ID
+      description: Load group ID as configured in the controller
+      example: 110
+
+open_loads:
+  name: Open Loads
+  description: >
+    Open (energize) relay loads in a load group (COPNL).
+    Intended for relay-controlled loads such as motorized shades or HVAC.
+
+  fields:
+    loadid:
+      name: Load ID
+      description: Load group ID as configured in the controller
+      example: 120
+
+close_loads:
+  name: Close Loads
+  description: >
+    Close (de-energize) relay loads in a load group (CCLSL).
+
+  fields:
+    loadid:
+      name: Load ID
+      description: Load group ID as configured in the controller
+      example: 120
+
+stop_loads:
+  name: Stop Loads
+  description: >
+    Stop a load group mid-travel (CSTPL). Useful for stopping motorized shades.
+
+  fields:
+    loadid:
+      name: Load ID
+      description: Load group ID as configured in the controller
+      example: 120
+
+start_ramp:
+  name: Start Ramp
+  description: >
+    Begin ramping a load group (CSTRP). The controller will ramp continuously
+    until stop_ramp is called or the min/max level is reached.
+
+  fields:
+    loadid:
+      name: Load ID
+      description: Load group ID as configured in the controller
+      example: 110
+
+stop_ramp:
+  name: Stop Ramp
+  description: >
+    Stop an in-progress ramp on a load group (CSPRP).
+
+  fields:
+    loadid:
+      name: Load ID
+      description: Load group ID as configured in the controller
+      example: 110
+
+ramp_to_min:
+  name: Ramp to Minimum
+  description: >
+    Ramp a load group down to its configured minimum level (CSRMN).
+
+  fields:
+    loadid:
+      name: Load ID
+      description: Load group ID as configured in the controller
+      example: 110
+
+ramp_to_max:
+  name: Ramp to Maximum
+  description: >
+    Ramp a load group up to its configured maximum level (CSRMX).
+
+  fields:
+    loadid:
+      name: Load ID
+      description: Load group ID as configured in the controller
+      example: 110
+
+lock_loads:
+  name: Lock Loads
+  description: >
+    Lock a load group so it cannot be changed by keypad presses (CLCKL).
+    Use unlock_loads to restore normal operation.
+
+  fields:
+    loadid:
+      name: Load ID
+      description: Load group ID as configured in the controller
+      example: 110
+
+unlock_loads:
+  name: Unlock Loads
+  description: >
+    Unlock a previously locked load group (CUNLL).
+
+  fields:
+    loadid:
+      name: Load ID
+      description: Load group ID as configured in the controller
+      example: 110
+
+lock_timer:
+  name: Lock Timer
+  description: >
+    Lock a controller timer so it cannot fire (CLCKT).
+    Use unlock_timer to restore normal operation.
+
+  fields:
+    timer_id:
+      name: Timer ID
+      description: Timer ID as configured in the controller
+      example: 1
+
+unlock_timer:
+  name: Unlock Timer
+  description: >
+    Unlock a previously locked controller timer (CUNLT).
+
+  fields:
+    timer_id:
+      name: Timer ID
+      description: Timer ID as configured in the controller
+      example: 1
+
+increment_load_levels:
+  name: Increment Load Levels
+  description: >
+    Increment the brightness of a load group by a step amount (CUPLL).
+    Useful for implementing dimmer raise automations.
+
+  fields:
+    loadid:
+      name: Load ID
+      description: Load group ID as configured in the controller
+      example: 110
+    step:
+      name: Step
+      description: Amount to increase brightness (1–100 percent)
+      example: 10
+
+decrement_load_levels:
+  name: Decrement Load Levels
+  description: >
+    Decrement the brightness of a load group by a step amount (CDNLL).
+    Useful for implementing dimmer lower automations.
+
+  fields:
+    loadid:
+      name: Load ID
+      description: Load group ID as configured in the controller
+      example: 110
+    step:
+      name: Step
+      description: Amount to decrease brightness (1–100 percent)
+      example: 10
+
+set_global:
+  name: Set Global Variable
+  description: >
+    Set a controller global variable by address (CSETG). Globals are
+    integer slots stored in the controller and can be used to pass data
+    to controller programming.
+
+  fields:
+    address:
+      name: Address
+      description: Global variable address (controller-defined)
+      example: 0
+    value:
+      name: Value
+      description: Integer value to write to the global
+      example: 1
