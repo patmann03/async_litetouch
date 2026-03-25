@@ -61,6 +61,7 @@ class LiteTouchLightEntity(LightEntity):
         self._ltcode = cfg.get(CONF_LTCODE)
 
         self._remove_listener = None
+        self._remove_connection_listener = None
 
         self._is_on = False
         self._brightness = 0  # HA 0..255
@@ -87,6 +88,10 @@ class LiteTouchLightEntity(LightEntity):
             "location": self._location,
             "ltcode": self._ltcode,
         }
+
+    @property
+    def available(self) -> bool:
+        return self._bridge.connected
 
     @property
     def is_on(self) -> bool:
@@ -118,6 +123,11 @@ class LiteTouchLightEntity(LightEntity):
         # listen for push updates
         self._remove_listener = self._bridge.add_listener(self._handle_module_changed)
 
+        # listen for connectivity changes
+        self._remove_connection_listener = self._bridge.add_connection_listener(
+            self._handle_connection_changed
+        )
+
         # write initial state
         self.async_write_ha_state()
 
@@ -125,6 +135,12 @@ class LiteTouchLightEntity(LightEntity):
         if self._remove_listener:
             self._remove_listener()
             self._remove_listener = None
+        if self._remove_connection_listener:
+            self._remove_connection_listener()
+            self._remove_connection_listener = None
+
+    def _handle_connection_changed(self, connected: bool) -> None:
+        self.async_write_ha_state()
 
     def _handle_module_changed(self, module_int: int) -> None:
         if module_int != self._module_int:
@@ -146,7 +162,7 @@ class LiteTouchLightEntity(LightEntity):
         level_pct = ha_to_pct(int(brightness))
         if ATTR_TRANSITION in kwargs:
             transition = kwargs[ATTR_TRANSITION]  # * 1000
-            _LOGGER.debug(f"Transition passed: {transition}")
+            _LOGGER.debug("Transition passed: %s", transition)
         else:
             transition = self._default_transition
 

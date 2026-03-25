@@ -118,6 +118,7 @@ class _LiteTouchTransport:
         self.reconnect_min_delay = reconnect_min_delay
         self.reconnect_max_delay = reconnect_max_delay
         self.on_message = on_message
+        self.on_connection_change: Optional[Callable[[bool], None]] = None
         self.print_raw = print_raw
 
         self.keepalive_interval = keepalive_interval
@@ -171,6 +172,7 @@ class _LiteTouchTransport:
         self._waiters.clear()
 
     async def _disconnect(self) -> None:
+        was_connected = self._writer is not None
         if self._writer:
             try:
                 self._writer.close()
@@ -179,11 +181,15 @@ class _LiteTouchTransport:
                 pass
         self._reader = None
         self._writer = None
+        if was_connected and self.on_connection_change:
+            self.on_connection_change(False)
 
     async def _connect(self) -> None:
         self._reader, self._writer = await asyncio.open_connection(self.host, self.port)
         _LOGGER.info("[%s] connected to %s:%s", self.name, self.host, self.port)
         await self.send("R,SIEVN,5") # enable module and keypad events
+        if self.on_connection_change:
+            self.on_connection_change(True)
         
 
     async def _keepalive_loop(self) -> None:
@@ -226,7 +232,8 @@ class _LiteTouchTransport:
                     await self._connect()
                     delay = self.reconnect_min_delay
 
-                assert self._reader is not None
+                if self._reader is None:
+                    raise ConnectionError(f"[{self.name}] reader is None after connect")
                 # Messages are terminated by carriage return per spec
                 raw = await self._reader.readuntil(separator=b"\r")
                 line = raw.decode("ascii", errors="replace").strip("\r\n")
@@ -292,7 +299,8 @@ class _LiteTouchTransport:
                     await asyncio.sleep(remaining_ms / 1000)
 
             await self._ensure_connected()
-            assert self._writer is not None
+            if self._writer is None:
+                raise ConnectionError(f"[{self.name}] writer is None, not connected")
             if self.print_raw:
                 print(f"[{self.name}] >> {command.strip()}")
             self._writer.write(command.encode("ascii", errors="replace"))
@@ -400,6 +408,11 @@ class LiteTouchClient:
         self.on_module_update: Optional[Callable[[int, str, List[int]], None]] = None
         self.on_event: Optional[Callable[[str, str], None]] = None
         self.on_any_message: Optional[Callable[[LiteTouchResponse], None]] = None
+        self.on_connection_change: Optional[Callable[[bool], None]] = None
+
+        # Wire connectivity callback from the primary transport (event or first cmd)
+        primary = self._event_transport or self._cmd_transports[0]
+        primary.on_connection_change = self._handle_connection_change
 
     async def start(self) -> None:
         for t in self._cmd_transports:
@@ -420,6 +433,10 @@ class LiteTouchClient:
 
     def _events_transport(self) -> _LiteTouchTransport:
         return self._event_transport or self._cmd_transports[0]
+
+    def _handle_connection_change(self, connected: bool) -> None:
+        if self.on_connection_change:
+            self.on_connection_change(connected)
 
     def _handle_unsolicited(self, resp: LiteTouchResponse) -> None:
         # Notifications documented: RLEDU, RMODU, REVNT
@@ -571,7 +588,7 @@ class LiteTouchClient:
             expect=self._expect_query("DGMLV"),
             timeout=3.0,
         )
-        _LOGGER.debug(f"Response: {resp}")
+        _LOGGER.debug("Response: %s", resp)
         if not resp.fields:
             return "", []
         # bitmap = resp.fields[2:]
