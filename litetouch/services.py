@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import asyncio
-import inspect
 import logging
-from typing import Any, Callable
+from typing import Any
 
 import voluptuous as vol
 
@@ -112,31 +110,26 @@ GLOBAL_SCHEMA = vol.Schema(
     }
 )
 
+ALL_SERVICES = [
+    SERVICE_SET_CLOCK, SERVICE_SET_MODULE_LEVELS, SERVICE_TOGGLE_SWITCH,
+    SERVICE_LOAD_OFF, SERVICE_LOAD_ON, SERVICE_LOAD_LVL,
+    SERVICE_PRESS_SWITCH, SERVICE_HOLD_SWITCH, SERVICE_RELEASE_SWITCH,
+    SERVICE_PRESS_HOLD_SWITCH, SERVICE_SET_LED_ON, SERVICE_SET_LED_OFF,
+    SERVICE_RECALL_PRESET, SERVICE_RESTORE_STATES, SERVICE_SAVE_PRESET,
+    SERVICE_OPEN_LOADS, SERVICE_CLOSE_LOADS, SERVICE_STOP_LOADS,
+    SERVICE_START_RAMP, SERVICE_STOP_RAMP, SERVICE_RAMP_TO_MIN,
+    SERVICE_RAMP_TO_MAX, SERVICE_LOCK_LOADS, SERVICE_UNLOCK_LOADS,
+    SERVICE_LOCK_SWITCH, SERVICE_UNLOCK_SWITCH, SERVICE_LOCK_TIMER,
+    SERVICE_UNLOCK_TIMER, SERVICE_INCREMENT_LEVELS, SERVICE_DECREMENT_LEVELS,
+    SERVICE_SET_GLOBAL,
+]
 
-async def _async_call_client(
-    hass: HomeAssistant,
-    func: Callable[..., Any],
-    *args: Any,
-) -> Any:
-    """Call a client function safely, handling both sync and async implementations.
 
-    - If func is async (coroutine function), await it directly.
-    - If func is sync, run it in the executor.
-    - If a sync call returns a coroutine object, await it on the event loop.
-    """
-    if inspect.iscoroutinefunction(func):
-        # Async client method: must be awaited directly (not in executor)
-        return await func(*args)
-
-    # Sync client method: run in executor to avoid blocking the event loop
-    result = await hass.async_add_executor_job(func, *args)
-
-    # Some libraries dynamically return coroutine objects even from sync wrappers.
-    # If so, await the coroutine here on the event loop.
-    if asyncio.iscoroutine(result):
-        return await result
-
-    return result
+@callback
+def async_unload_services(hass: HomeAssistant) -> None:
+    """Remove all registered LiteTouch services."""
+    for svc in ALL_SERVICES:
+        hass.services.async_remove(DOMAIN, svc)
 
 
 @callback
@@ -161,19 +154,16 @@ def async_setup_services(hass: HomeAssistant, bridge) -> None:
     )
 
     async def handle_set_module_levels(call: ServiceCall) -> None:
-        """Set module output levels."""
+        """Set module output levels via raw DSMLV."""
         module_hex = call.data[MODULE]
         bitmap_hex = call.data[BITMAP]
         time_seconds = call.data[RAMP]
         levels = call.data[LEVELS]
-        loadid = None
 
-        await bridge.set_output_level(
-            
+        await bridge.set_module_levels(
             module_hex,
             bitmap_hex,
             time_seconds,
-            loadid,
             levels,
         )
 

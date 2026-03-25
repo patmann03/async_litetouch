@@ -30,7 +30,7 @@ from .const import (
     DOMAIN,
 )
 from .litetouch_bridge import LiteTouchBridge
-from .services import async_setup_services
+from .services import async_setup_services, async_unload_services
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -130,6 +130,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     data = hass.data[DOMAIN][entry.entry_id]
     bridge = data["bridge"]
     await bridge.stop()
+
+    # Only remove services when the last entry is unloaded
+    remaining = [eid for eid in hass.data.get(DOMAIN, {}) if eid != entry.entry_id]
+    if not remaining:
+        async_unload_services(hass)
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, ["light"])
     if unload_ok:

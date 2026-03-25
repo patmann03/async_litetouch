@@ -68,8 +68,14 @@ class LiteTouchBridge:
         # callbacks: called when a module updates
         self._listeners: List[Callable[[int], None]] = []
 
-        # hook push updates
+        # callbacks: called when connectivity changes
+        self._connection_listeners: List[Callable[[bool], None]] = []
+
+        # hook push updates and connectivity
         self._client.on_module_update = self._on_module_update
+        self._client.on_connection_change = self._on_connection_change
+
+        self._connected = False
 
         # internal guard for cache refresh per module
         self._locks: Dict[int, asyncio.Lock] = {}
@@ -83,12 +89,25 @@ class LiteTouchBridge:
     async def stop(self) -> None:
         await self._client.close()
 
+    @property
+    def connected(self) -> bool:
+        return self._connected
+
     def add_listener(self, cb: Callable[[int], None]) -> Callable[[], None]:
         self._listeners.append(cb)
 
         def _remove() -> None:
             if cb in self._listeners:
                 self._listeners.remove(cb)
+
+        return _remove
+
+    def add_connection_listener(self, cb: Callable[[bool], None]) -> Callable[[], None]:
+        self._connection_listeners.append(cb)
+
+        def _remove() -> None:
+            if cb in self._connection_listeners:
+                self._connection_listeners.remove(cb)
 
         return _remove
 
@@ -105,21 +124,15 @@ class LiteTouchBridge:
         """Enable SMODN notifications for module (mode=1). [1](https://developers.home-assistant.io/docs/creating_integration_manifest/)"""
         await self._client.set_module_notify(module_hex, 1)
 
-    async def ensure_module_cached(self, module_hex: str) -> None:
-        """
-        If we don't have levels yet, query DGMLV to seed cache. [1](https://developers.home-assistant.io/docs/creating_integration_manifest/)
-        """
-        module_int = int(module_hex, 16)
-        lock = self._locks.setdefault(module_int, asyncio.Lock())
-
-        async with lock:
-            if module_int in self._module_levels and any(
-                x >= 0 for x in self._module_levels[module_int]
-            ):
-                return
+    async def _fetch_module_if_needed(self, module_hex: str, module_int: int) -> None:
+        """Fetch and cache module levels if not already cached. Caller must hold the per-module lock."""
+        if module_int in self._module_levels and any(
+            x >= 0 for x in self._module_levels[module_int]
+        ):
+            return
 
         bitmap_hex, levels = await self._client.get_module_levels(module_hex)  # DGMLV
-        _LOGGER.debug(f"DGMLV Resp.  Bitmap Hex: {bitmap_hex}.  Levels: {levels}")
+        _LOGGER.debug("DGMLV Resp.  Bitmap Hex: %s.  Levels: %s", bitmap_hex, levels)
 
         # DGMLV returns up to 8; pad/truncate to exactly 8
         padded = list(levels[:8]) + [-1] * (8 - len(levels))
@@ -127,17 +140,12 @@ class LiteTouchBridge:
         # Apply bitmap: if bit says OFF, treat level as 0 (but preserve -1 unknown)
         bitmap_int = int(str(bitmap_hex), 16)
 
-        # Configure this flag in your bridge __init__ as needed:
-        # self._msb_first = True  # if output0 corresponds to bit7 (0x80)
         msb_first = getattr(self, "_msb_first", False)
 
         def bit_is_on(output_index: int) -> bool:
-            """Check ON/OFF from bitmap for an output index 0..7."""
             if msb_first:
-                # output0 -> bit7, output7 -> bit0
                 bitpos = 7 - output_index
             else:
-                # output0 -> bit0, output7 -> bit7
                 bitpos = output_index
             return ((bitmap_int >> bitpos) & 1) == 1
 
@@ -148,6 +156,14 @@ class LiteTouchBridge:
                 padded[i] = 0
 
         self._module_levels[module_int] = padded
+
+    async def ensure_module_cached(self, module_hex: str) -> None:
+        """If we don't have levels yet, query DGMLV to seed cache."""
+        module_int = int(module_hex, 16)
+        lock = self._locks.setdefault(module_int, asyncio.Lock())
+
+        async with lock:
+            await self._fetch_module_if_needed(module_hex, module_int)
 
     async def lt_toggle_switch(
         self,
@@ -316,41 +332,41 @@ class LiteTouchBridge:
 
         _LOGGER.debug("module int: %s  module_hex %s", module_int, module_hex)
 
-        # Ensure we have a cached view (for HA state tracking)
-        await self.ensure_module_cached(module_hex)
+        lock = self._locks.setdefault(module_int, asyncio.Lock())
 
-        # Clamp & apply to cached copy
-        current = self._module_levels.get(module_int, [-1] * 8)
-        _LOGGER.debug("current levels: %s, output (socket#): %s", current, output)
+        async with lock:
+            # Ensure we have a cached view (for HA state tracking)
+            await self._fetch_module_if_needed(module_hex, module_int)
 
-        new_levels = list(current)
-        new_levels[output] = max(0, min(100, int(level_pct)))
-        _LOGGER.debug("new levels: %s", new_levels)
+            # Clamp & apply to cached copy
+            current = self._module_levels.get(module_int, [-1] * 8)
+            _LOGGER.debug("current levels: %s, output (socket#): %s", current, output)
 
-        # Bitmap that selects which outputs we are sending
-        bitmap_hex = bitmask_for_output(output)
-        _LOGGER.debug("bitmap_hex: %s", bitmap_hex)
+            new_levels = list(current)
+            new_levels[output] = max(0, min(100, int(level_pct)))
+            _LOGGER.debug("new levels: %s", new_levels)
 
-        # Build sparse payload: only levels for bits set in bitmap
-        mask = int(bitmap_hex, 16)
-        levels_to_send: list[int] = []
+            # Bitmap that selects which outputs we are sending
+            bitmap_hex = bitmask_for_output(output)
+            _LOGGER.debug("bitmap_hex: %s", bitmap_hex)
 
-        # For 8 outputs, pack values in increasing bit order (bit0..bit7)
-        # (This matches the common DSMLV convention where 0x40 -> output 6.)
-        for i in range(8):
-            if mask & (1 << i):
-                lvl = new_levels[i]
-                # If cache is uninitialized (-1) for any selected output, default safely
-                if lvl < 0:
-                    lvl = 0
-                levels_to_send.append(int(lvl))
+            # Build sparse payload: only levels for bits set in bitmap
+            mask = int(bitmap_hex, 16)
+            levels_to_send: list[int] = []
 
-        _LOGGER.debug("levels_to_send (sparse): %s", levels_to_send)
+            for i in range(8):
+                if mask & (1 << i):
+                    lvl = new_levels[i]
+                    if lvl < 0:
+                        lvl = 0
+                    levels_to_send.append(int(lvl))
 
-        # Update cache now that we intend to set it (keeps HA state consistent)
-        self._module_levels[module_int] = new_levels
+            _LOGGER.debug("levels_to_send (sparse): %s", levels_to_send)
 
-        # Send only the selected levels; do NOT send all 8
+            # Update cache now that we intend to set it (keeps HA state consistent)
+            self._module_levels[module_int] = new_levels
+
+        # Send outside lock — network I/O shouldn't hold the cache lock
         await self._client.set_module_levels(
             module_hex,
             bitmap_hex,
@@ -358,19 +374,35 @@ class LiteTouchBridge:
             levels_to_send,
         )
 
-        # optimistic update (controller should also push RMODU)
-        # self._module_levels[module_int] = new_levels
-        # for cb in list(self._listeners):
-        #     cb(module_int)
+    async def set_module_levels(
+        self,
+        module_hex: str,
+        bitmap_hex: str,
+        time_seconds: int,
+        levels: List[int],
+    ) -> None:
+        """Raw DSMLV passthrough for the service handler."""
+        await self._client.set_module_levels(module_hex, bitmap_hex, time_seconds, levels)
 
     # ---- push handler ----
 
     def _on_module_update(
         self, module_int: int, changed_map: str, levels: List[int]
     ) -> None:
-        # Per protocol, RMODU includes level1..level8 and notes mask is FF in this implementation. [1](https://developers.home-assistant.io/docs/creating_integration_manifest/)
         padded = list(levels[:8]) + [-1] * (8 - len(levels))
         self._module_levels[module_int] = padded
 
         for cb in list(self._listeners):
-            cb(module_int)
+            try:
+                cb(module_int)
+            except Exception:
+                _LOGGER.exception("Listener callback error for module %s", module_int)
+
+    def _on_connection_change(self, connected: bool) -> None:
+        self._connected = connected
+        _LOGGER.info("Bridge connectivity changed: %s", connected)
+        for cb in list(self._connection_listeners):
+            try:
+                cb(connected)
+            except Exception:
+                _LOGGER.exception("Connection listener callback error")
